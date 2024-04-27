@@ -8,18 +8,23 @@ HEIGHT = 600
 activa = False
 focus = False
 primera_vez = 0
-bomb_type = 2
+bomb_type = 3
 tiempo_inicial_tecla = 0
 eee = True
 daño_golpe = 3
 suma_1 = 8
 suma_2 = -8
+aumento_nuclear = 5
 bomba_print = False
 espera_nojoda = 0
 daño = 0
-
+primera_bomba = 0
 rotation = False
 bubble  = False
+nuclear = False
+bomba_activada = False
+segundo = 0
+contador_explosion = 0
 bomba_cd = False
 numero = 0
 angulo_aumento = 0
@@ -30,6 +35,7 @@ death_hitbox = Actor("hitbox.jpg", (200, 430))
 contador = 0
 contador_enemigo = 0
 bomba_2 = []
+bomba_3 = Actor("nuclear.png", (5000, 300))
 espera = 5
 espera_enemigos = 5
 balas = []
@@ -37,7 +43,7 @@ enemigos = []
 enemigo_spawn = True
 rango_visible = Actor("cubo_visible.jpg", (205, 300))
 atacante = Actor("jugador.jpg", (195, 90))
-wawa = Actor("no_evidence.png", (5000, 300))
+bomba_1 = Actor("no_evidence.png", (5000, 300))
 bala_circular = []
 circulos_wa = []
 aleatorio = 0
@@ -61,10 +67,12 @@ def draw():
 
     if bomba_print:
         if bomb_type == 1:
-            wawa.draw()
+            bomba_1.draw()
         if bomb_type == 2:
             for burbuja in bomba_2:
                 burbuja[0].draw()
+        if bomb_type == 3:
+            bomba_3.draw()
     
     screen.blit(fondito, (0, 0))
 
@@ -125,17 +133,17 @@ def update():
         global bomba_print
         global angulo_aumento
         bomba_print = True
-        wawa.x = 205
+        bomba_1.x = 205
         for a in range(720):
             numero += 1
             if numero == 100:
                 if angulo_aumento < 15:
                     angulo_aumento += 0.1
-                wawa.angle += angulo_aumento
+                bomba_1.angle += angulo_aumento
     else:
         angulo_aumento = 0
-        wawa.angle = 0
-        wawa.x = 5000
+        bomba_1.angle = 0
+        bomba_1.x = 5000
         bomba_print = False
 
     if bubble == True:
@@ -153,7 +161,44 @@ def update():
             primera_vez = 1
     else: 
         primera_vez = 0
-        
+    
+    if nuclear == True:
+        global primera_bomba
+        global segundo
+        global aumento_nuclear
+        global bomba_activada
+        global contador_explosion
+        if bomba_activada == False:
+            bomba_print = True
+            if primera_bomba == 0:
+                bomba_3.angle = 0
+                bomba_3.x = jugador.x+5
+                bomba_3.y = jugador.y
+                primera_bomba = 1
+                aumento_nuclear = 5
+            if segundo != 30:
+                segundo += 1
+            else:
+                segundo = 0
+                aumento_nuclear -= 1
+
+            bomba_3.y -= aumento_nuclear
+
+            if aumento_nuclear < 0:
+                if bomba_3.angle != 180:
+                    bomba_3.angle += 3
+
+            if (bomba_3.y >= 574):
+                bomba_explosion(True)
+                bomba.pos = (1000, 1)
+                bomba_print = False
+    else:
+        primera_bomba = 0
+        numero = 0
+        bomba.pos = (1000, 1)
+        bomba_activada = False
+        contador_explosion = 0
+
     for burbuja in bomba_2:
         global suma_1
         global suma_2
@@ -187,13 +232,12 @@ def update():
         espera_nojoda += 1
         if bomb_type == 1:
             espera = 300
-        if bomb_type == 2:
-            espera = 600    
+        if bomb_type == 2 or 3:
+            espera = 600  
 
         if espera_nojoda <= espera:
             bomba_cd = True
             bomba(True)
-            print (espera_nojoda)
         else:
             bomba_cd = False
             activa = False 
@@ -266,7 +310,7 @@ def update():
     for coso in bala_circular:   
         if not coso[0].colliderect(rango_visible):
             bala_circular.remove(coso)
-        if coso[0].colliderect(wawa):
+        if coso[0].colliderect(bomba_1):
             if coso in bala_circular:
                 bala_circular.remove(coso)
         for burbuja in bomba_2:
@@ -278,7 +322,7 @@ def update():
     for coso in circulos_wa:   
         if not coso[0].colliderect(rango_visible):
             circulos_wa.remove(coso)
-        if coso[0].colliderect(wawa):
+        if coso[0].colliderect(bomba_1):
             if coso in circulos_wa:
                 circulos_wa.remove(coso)    
         for burbuja in bomba_2:
@@ -429,22 +473,39 @@ def movimiento_rival(wa):
 def bomba(a):
     global rotation
     global bubble
+    global nuclear
     if bomb_type == 1:
         if a == True:
             rotation = True
         else:
             rotation = False
-    if bomb_type == 2:
+    elif bomb_type == 2:
         if a == True:
             bubble = True
         else:
             bubble = False
+    elif bomb_type == 3:
+        if a == True:
+            nuclear = True
+        else:
+            nuclear = False
 
 
 def daño_golpe_cambio(entero: int):
     global daño_golpe
     daño_golpe = entero
-        
 
+def bomba_explosion(Comprobante):
+    global activa
+    global bomba_activada
+    global contador_explosion
+    if Comprobante == True:
+        for bala in bala_circular:
+            bala_circular.remove(bala)
+        for bala in circulos_wa:
+            circulos_wa.remove(bala)
+        contador_explosion += 1
+        if contador_explosion == 20:
+            bomba_activada = True
 
 pgzrun.go()
