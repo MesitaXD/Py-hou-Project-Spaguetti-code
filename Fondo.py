@@ -1,16 +1,22 @@
 import pygame
 import pgzrun
 import math
+
 from random import randint
 WIDTH = 800
 HEIGHT = 600
 activa = False
 focus = False
+primera_vez = 0
+bomb_type = 2
 tiempo_inicial_tecla = 0
 eee = True
+suma_1 = 8
+suma_2 = -8
 bomba_print = False
 espera_nojoda = 0
 rotation = False
+bubble  = False
 bomba_cd = False
 numero = 0
 angulo_aumento = 0
@@ -20,6 +26,7 @@ hitbox = Actor('hitbox', (200, 530))
 death_hitbox = Actor("hitbox.jpg", (200, 430))
 contador = 0
 contador_enemigo = 0
+bomba_2 = []
 espera = 5
 espera_enemigos = 5
 balas = []
@@ -47,19 +54,27 @@ def draw():
 
     for cosa in circulos_wa:
         cosa[0].draw()
-        
+
+    if bomba_print:
+        if bomb_type == 1:
+            wawa.draw()
+        if bomb_type == 2:
+            for burbuja in bomba_2:
+                burbuja[0].draw()
+    
     screen.blit(fondito, (0, 0))
 
 
     for enemigo in enemigos:
         enemigo[0].draw()
 
-    jugador.draw()
-    hitbox.draw()
+    if focus == True:
+        jugador.draw()
+        hitbox.draw()
+    else:
+        jugador.draw()
     death_hitbox.draw()
     atacante.draw()
-    if bomba_print:
-        wawa.draw()
 
     for bala in balas:
         bala.draw()
@@ -105,7 +120,7 @@ def update():
         global bomba_print
         global angulo_aumento
         bomba_print = True
-        wawa.x = 200
+        wawa.x = 205
         for a in range(720):
             numero += 1
             if numero == 100:
@@ -118,8 +133,39 @@ def update():
         wawa.x = 5000
         bomba_print = False
 
-
-
+    if bubble == True:
+        global primera_vez
+        bomba_print = True
+        if primera_vez == 0:
+            bomba_print = True
+            coord = jugador.pos
+            burbuja_1 = Actor("explosive_mix.png", coord)
+            burbuja_2 = Actor("explosive_mix.png", coord)
+            b1 = (burbuja_1, 1)
+            b2 = (burbuja_2, 2)
+            bomba_2.append(b1)
+            bomba_2.append(b2)
+            primera_vez = 1
+    else: 
+        primera_vez = 0
+        
+    for burbuja in bomba_2:
+        global suma_1
+        global suma_2
+        if burbuja[1] == 1:
+            burbuja[0].y -= 1
+            if (burbuja[0].x <= 31):
+                suma_1 = 8
+            if (burbuja[0].x >= 379):
+                suma_1 = -8
+            burbuja[0].x += suma_1
+        elif burbuja[1] == 2:
+            burbuja[0].y -= 1
+            if (burbuja[0].x <= 31):
+                suma_2 = 8
+            if (burbuja[0].x >= 379):
+                suma_2= -8
+            burbuja[0].x += suma_2
 
     if keyboard.a:
         bala_spin(True)
@@ -134,7 +180,12 @@ def update():
     if activa == True:
         global espera_nojoda
         espera_nojoda += 1
-        if espera_nojoda <= 300:
+        if bomb_type == 1:
+            espera = 300
+        if bomb_type == 2:
+            espera = 600    
+
+        if espera_nojoda <= espera:
             bomba_cd = True
             bomba(True)
             print (espera_nojoda)
@@ -216,6 +267,11 @@ def update():
         if coso[0].colliderect(wawa):
             if coso in bala_circular:
                 bala_circular.remove(coso)
+        for burbuja in bomba_2:
+            if coso[0].colliderect(burbuja[0]):
+                if coso in bala_circular:
+                    bala_circular.remove(coso)
+                
 
     for coso in circulos_wa:   
         if not coso[0].colliderect(rango_visible):
@@ -223,6 +279,10 @@ def update():
         if coso[0].colliderect(wawa):
             if coso in circulos_wa:
                 circulos_wa.remove(coso)    
+        for burbuja in bomba_2:
+            if coso[0].colliderect(burbuja[0]):
+                if coso in circulos_wa:
+                    circulos_wa.remove(coso)
 
 
 
@@ -256,7 +316,6 @@ def mover_jugador(direccion, distancia = 4):
     if (jugador.x >= 379):
         jugador.x = 379
         hitbox.x = 379
-
 
 def disparo(disparo):
     global contador
@@ -365,10 +424,17 @@ def movimiento_rival(wa):
 
 def bomba(a):
     global rotation
-    if a == True:
-        rotation = True
-    else:
-        rotation = False
+    global bubble
+    if bomb_type == 1:
+        if a == True:
+            rotation = True
+        else:
+            rotation = False
+    if bomb_type == 2:
+        if a == True:
+            bubble = True
+        else:
+            bubble = False
 
 
 
