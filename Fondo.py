@@ -232,9 +232,12 @@ def update():
         espera_nojoda += 1
         if bomb_type == 1:
             espera = 300
-        if bomb_type == 2 or 3:
-            espera = 600  
+        if bomb_type == 2:
+            espera = 600
+        if bomb_type == 3:
+            espera = 600
 
+        print (espera_nojoda)
         if espera_nojoda <= espera:
             bomba_cd = True
             bomba(True)
