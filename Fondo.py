@@ -11,10 +11,13 @@ primera_vez = 0
 bomb_type = 2
 tiempo_inicial_tecla = 0
 eee = True
+daño_golpe = 3
 suma_1 = 8
 suma_2 = -8
 bomba_print = False
 espera_nojoda = 0
+daño = 0
+
 rotation = False
 bubble  = False
 bomba_cd = False
@@ -41,7 +44,8 @@ aleatorio = 0
 contador_enemigo_2 = 0
 contador_enemigo_3 = 0
 numero_2 = 0
-
+vida_max = 320
+vida_verde =  Rect((65, 20), (vida_max, 10))
 
 
 
@@ -64,7 +68,8 @@ def draw():
     
     screen.blit(fondito, (0, 0))
 
-
+    screen.draw.rect(vida_verde, (0, 255, 0))
+    screen.draw.filled_rect(vida_verde, (0, 255, 0))
     for enemigo in enemigos:
         enemigo[0].draw()
 
@@ -195,34 +200,31 @@ def update():
             espera_nojoda = 0
             bomba(False)
 
-    global contador_enemigo_2
-    global aleatorio
-    global atacante
-    random = 0
-    global eee
-    if eee == True:
-        atacante.x = 145
-        eee = False
-    contador_enemigo_2 += 1
-    if contador_enemigo_2 == 2:
-        contador_enemigo_2 = 0
-        random += 10
-        if random == 360:
-            random = 0
-        aleatorio += random
-        x = math.sin(math.radians(aleatorio))
-        y = math.cos(math.radians(aleatorio*3))
-        atacante.x += 15*x
-        atacante.y += 6*y
-
-
 
     for bala in balas:
+        global vida_max, vida_verde, daño, daño_golpe
         bala.y -= 10
         verificar_rango(bala)
         if bala.colliderect(death_hitbox):
             balas.remove(bala)
             death_hitbox.x += randint(-10, 10)
+        if bala.colliderect(atacante):
+            daño +=1
+            print ("ENEMIGO GOLPEADO")
+            print (daño)
+            balas.remove(bala)
+            if daño == daño_golpe:
+                daño = 0
+                vida_max -= 10
+                vida_verde = Rect((65, 20), (vida_max, 10))
+
+    if vida_max > 160:
+        bala_spin(True)
+    if 70 < vida_max <=160:
+        bala_circulos("si")
+        movimiento_rival(True)
+    if vida_max <= 70:
+        daño_golpe_cambio(25)
 
     for cosa in bala_circular:
 
@@ -406,12 +408,12 @@ def movimiento_rival(wa):
     global contador_enemigo_2
     global aleatorio
     global atacante
-    random = 0
     global eee
+    random = 0
+    if eee == True:
+        atacante.x = 145
+        eee = False
     if wa == True:
-        if eee == True:
-            atacante.x = 145
-            eee = False
         contador_enemigo_2 += 1
         if contador_enemigo_2 == 2:
             contador_enemigo_2 = 0
@@ -420,7 +422,9 @@ def movimiento_rival(wa):
                 random = 0
             aleatorio += random
             x = math.sin(math.radians(aleatorio))
+            y = math.cos(math.radians(aleatorio*3))
             atacante.x += 15*x
+            atacante.y += 6*y
 
 def bomba(a):
     global rotation
@@ -437,7 +441,9 @@ def bomba(a):
             bubble = False
 
 
-
+def daño_golpe_cambio(entero: int):
+    global daño_golpe
+    daño_golpe = entero
         
 
 
