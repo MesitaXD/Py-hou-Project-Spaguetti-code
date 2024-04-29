@@ -1,16 +1,20 @@
 import pygame
 import pgzrun
 import math
-
+import sys
 from random import randint
 WIDTH = 800
 HEIGHT = 600
 activa = False
 focus = False
 primera_vez = 0
-bomb_type = 3
+bomb_type = 1
+bomba_y_vida = False
 tiempo_inicial_tecla = 0
 eee = True
+invencibilidad = False
+numero_pa_eliminar_bomba = 0
+numero_pa_eliminar_vida = 0
 daño_golpe = 3
 suma_1 = 8
 suma_2 = -8
@@ -51,8 +55,10 @@ contador_enemigo_2 = 0
 contador_enemigo_3 = 0
 numero_2 = 0
 vida_max = 320
+numero_vidas = []
+numero_bombas = []
 vida_verde =  Rect((65, 20), (vida_max, 10))
-
+numero_de_bombas = 0
 
 
 
@@ -76,6 +82,11 @@ def draw():
     
     screen.blit(fondito, (0, 0))
 
+    for vida in numero_vidas:
+        vida.draw()
+    for bomba in numero_bombas:
+        bomba.draw()
+
     screen.draw.rect(vida_verde, (0, 255, 0))
     screen.draw.filled_rect(vida_verde, (0, 255, 0))
     for enemigo in enemigos:
@@ -97,7 +108,12 @@ def draw():
 
 
 def update():
+    global numero_bombas
     global bomba_cd
+    global bomba_y_vida
+    global bomba
+    global numero_de_bombas
+    global invencibilidad
     direccion = ""
     if (keyboard.up):
         direccion = 'up'
@@ -168,6 +184,7 @@ def update():
         global aumento_nuclear
         global bomba_activada
         global contador_explosion
+        global numero_pa_eliminar_vida
         if bomba_activada == False:
             bomba_print = True
             if primera_bomba == 0:
@@ -223,10 +240,13 @@ def update():
         bala_spin(False)
 
     if keyboard.x:
-        if not bomba_cd:
-            global activa
-            activa = True
-    
+            if not len(numero_bombas) == 0:
+                if not bomba_cd:
+                    global activa
+                    activa = True
+                    print(len(numero_bombas))
+                    bomba_menos()
+            
     if activa == True:
         global espera_nojoda
         espera_nojoda += 1
@@ -237,7 +257,6 @@ def update():
         if bomb_type == 3:
             espera = 600
 
-        print (espera_nojoda)
         if espera_nojoda <= espera:
             bomba_cd = True
             bomba(True)
@@ -247,6 +266,57 @@ def update():
             espera_nojoda = 0
             bomba(False)
 
+    if bomb_type == 1:
+        if not bomba_y_vida:
+            numero_de_bombas = 3
+            for x in range(0, 61, 30):
+                vida = Actor("vida_sprite.png", (420+x, 50))
+                numero_vidas.append(vida)
+            for x_2 in range(0, 51, 25):
+                bomba_appendar = Actor("bomba_sprite.png", (420+x_2, 90))
+                numero_bombas.append(bomba_appendar)
+                bomba_y_vida = True
+
+    elif bomb_type == 2:
+        if not bomba_y_vida:
+            numero_de_bombas = 3
+            for x in range(0, 61, 30):
+                vida = Actor("vida_sprite.png", (420+x, 50))
+                numero_vidas.append(vida)
+            for x_2 in range(0, 76, 25):
+                bomba_appendar = Actor("bomba_sprite.png", (420+x_2, 90))
+                numero_bombas.append(bomba_appendar)
+                bomba_y_vida = True
+
+    elif bomb_type == 3:
+        if not bomba_y_vida:
+            numero_de_bombas = 1
+            for x in range(0, 181, 30):
+                vida = Actor("vida_sprite.png", (420+x, 50))
+                numero_vidas.append(vida)
+            for x_2 in range(0, 21, 25):
+                bomba_appendar = Actor("bomba_sprite.png", (420+x_2, 90))
+                numero_bombas.append(bomba_appendar)
+                bomba_y_vida = True
+
+    for coso in bala_circular or circulos_wa:
+
+        if invencibilidad == False:
+            if coso[0].colliderect(hitbox):
+                if not len(numero_vidas) == 0:
+                    invencibilidad = True
+                else:
+                    sys.exit()
+                
+
+    if invencibilidad == True:
+        numero_pa_eliminar_vida += 1
+        if numero_pa_eliminar_vida == 1:
+            numero_vidas.pop(-1)
+            reinicio_bombas()
+        if numero_pa_eliminar_vida == 120:
+            invencibilidad = False
+            numero_pa_eliminar_vida = 0
 
     for bala in balas:
         global vida_max, vida_verde, daño, daño_golpe
@@ -283,8 +353,7 @@ def update():
         cosa[0].y += 5 * cosa[1][1]
         cosa[0].x += 5 * cosa[1][0]
 
-    for enemigo in enemigos:    
-
+    for enemigo in enemigos:
         if hitbox.colliderect(enemigo[0]):
             print("GOLPE")
         
@@ -310,7 +379,7 @@ def update():
             if enemigo in enemigos:
                     enemigos.remove(enemigo)
 
-    for coso in bala_circular:   
+    for coso in bala_circular:  
         if not coso[0].colliderect(rango_visible):
             bala_circular.remove(coso)
         if coso[0].colliderect(bomba_1):
@@ -477,9 +546,11 @@ def bomba(a):
     global rotation
     global bubble
     global nuclear
+
     if bomb_type == 1:
         if a == True:
-            rotation = True
+            if not len(numero_bombas) < 0:
+                rotation = True
         else:
             rotation = False
     elif bomb_type == 2:
@@ -510,5 +581,26 @@ def bomba_explosion(Comprobante):
         contador_explosion += 1
         if contador_explosion == 20:
             bomba_activada = True
+    
+def bomba_menos():
+    global numero_bombas
+    global numero_pa_eliminar_bomba
+    if not len(numero_bombas) == 0:
+            if numero_pa_eliminar_bomba == 0:
+                numero_pa_eliminar_bomba = 1
+                numero_bombas.pop(-1)
+                numero_pa_eliminar_bomba = 0
+
+
+def reinicio_bombas():
+    global numero_bombas
+    global numero_de_bombas
+    numero_bombas.clear()
+    for eee in range(numero_de_bombas):
+        bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
+        numero_bombas.append(bomba_appendar)
+        print(len(numero_bombas))
+
+
 
 pgzrun.go()
