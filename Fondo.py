@@ -47,7 +47,7 @@ enemigos = []
 enemigo_spawn = True
 rango_visible = Actor("cubo_visible.jpg", (205, 300))
 atacante = Actor("jugador.jpg", (195, 90))
-bomba_1 = Actor("no_evidence.png", (5000, 300))
+bomba_1 = Actor("no_evidence.png", (1, 1))
 bala_circular = []
 circulos_wa = []
 aleatorio = 0
@@ -59,8 +59,12 @@ numero_vidas = []
 numero_bombas = []
 vida_verde =  Rect((65, 20), (vida_max, 10))
 numero_de_bombas = 0
-
-
+primera_vez_rotacion = 0
+posicion_x = 0
+posicion_y = 0
+diferencia_x = 0
+diferencia_y = 0
+hipotenusa = 0
 
 def draw():
 
@@ -146,10 +150,26 @@ def update():
         
     if rotation == True:
         numero = 0
-        global bomba_print
-        global angulo_aumento
+        global bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa
         bomba_print = True
-        bomba_1.x = 205
+        if primera_vez_rotacion == 0:
+            posicion_x = jugador.x
+            posicion_y = jugador.y
+            bomba_1.pos = jugador.pos
+            diferencia_x = 205 - posicion_x
+            diferencia_y = 300 - posicion_y
+            hipotenusa = math.sqrt((diferencia_x**2)+ (diferencia_y**2))
+            primera_vez_rotacion = 1
+
+        if bomba_1.x < 205:
+            bomba_1.x += 1.2 * (abs(diferencia_x) / hipotenusa)
+        else: 
+            bomba_1.x -= 1.2 * (abs(diferencia_x) / hipotenusa)
+        
+        if bomba_1.y > 300:
+            bomba_1.y -= 1.2 * ( abs(diferencia_y) / hipotenusa)
+        else: 
+            bomba_1.y += 1.2 * (abs(diferencia_y) / hipotenusa)
         for a in range(720):
             numero += 1
             if numero == 100:
@@ -161,7 +181,8 @@ def update():
         bomba_1.angle = 0
         bomba_1.x = 5000
         bomba_print = False
-
+        primera_vez_rotacion = 0
+        
     if bubble == True:
         global primera_vez
         bomba_print = True
@@ -279,7 +300,7 @@ def update():
 
     elif bomb_type == 2:
         if not bomba_y_vida:
-            numero_de_bombas = 3
+            numero_de_bombas = 4
             for x in range(0, 61, 30):
                 vida = Actor("vida_sprite.png", (420+x, 50))
                 numero_vidas.append(vida)
@@ -581,6 +602,8 @@ def bomba_explosion(Comprobante):
         contador_explosion += 1
         if contador_explosion == 20:
             bomba_activada = True
+            numero_vidas.pop(-1)
+            reinicio_bombas()
     
 def bomba_menos():
     global numero_bombas
