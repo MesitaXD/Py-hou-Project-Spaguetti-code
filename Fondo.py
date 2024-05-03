@@ -65,6 +65,11 @@ posicion_y = 0
 diferencia_x = 0
 diferencia_y = 0
 hipotenusa = 0
+musica = sounds.load("ronald.mp3")
+musica.play(-1)
+musica.set_volume(0.7)
+bala_sfx = sounds.load("disparo.wav")
+bala_sfx.set_volume(0.1)
 
 def draw():
 
@@ -106,6 +111,7 @@ def draw():
 
     for bala in balas:
         bala.draw()
+        
 
 
 
@@ -265,7 +271,6 @@ def update():
                 if not bomba_cd:
                     global activa
                     activa = True
-                    print(len(numero_bombas))
                     bomba_menos()
             
     if activa == True:
@@ -348,8 +353,6 @@ def update():
             death_hitbox.x += randint(-10, 10)
         if bala.colliderect(atacante):
             daño +=1
-            print ("ENEMIGO GOLPEADO")
-            print (daño)
             balas.remove(bala)
             if daño == daño_golpe:
                 daño = 0
@@ -374,10 +377,7 @@ def update():
         cosa[0].y += 5 * cosa[1][1]
         cosa[0].x += 5 * cosa[1][0]
 
-    for enemigo in enemigos:
-        if hitbox.colliderect(enemigo[0]):
-            print("GOLPE")
-        
+    for enemigo in enemigos:        
         enemigo[0].y += 5 * enemigo[1][1]
         enemigo[0].x += 5 *enemigo[1][0]
 
@@ -465,6 +465,7 @@ def disparo(disparo):
                 contador = 0
                 bala = Actor('hitbox', (jugador.x, jugador.y - 9))
                 balas.append(bala)
+                bala_sfx.play(1)
     else:
         if disparo == True:
             contador += 1
@@ -476,7 +477,7 @@ def disparo(disparo):
                 balas.append(bala)
                 balas.append(bala_2)
                 balas.append(bala_3)
-
+                bala_sfx.play()
 
 def spawn_enemigos(enemigo):
     global contador_enemigo
@@ -622,7 +623,6 @@ def reinicio_bombas():
     for eee in range(numero_de_bombas):
         bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
         numero_bombas.append(bomba_appendar)
-        print(len(numero_bombas))
 
 
 
