@@ -67,9 +67,12 @@ diferencia_y = 0
 hipotenusa = 0
 musica = sounds.load("ronald.mp3")
 musica.play(-1)
-musica.set_volume(0.7)
+musica.set_volume(0.5)
 bala_sfx = sounds.load("disparo.wav")
 bala_sfx.set_volume(0.1)
+spin_sfx = sounds.load("rope_spin.wav")
+spin_sfx.set_volume(0.4)
+giro_sfx = 0
 
 def draw():
 
@@ -112,11 +115,6 @@ def draw():
     for bala in balas:
         bala.draw()
         
-
-
-
-
-
 def update():
     global numero_bombas
     global bomba_cd
@@ -156,7 +154,7 @@ def update():
         
     if rotation == True:
         numero = 0
-        global bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa
+        global bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_sfx
         bomba_print = True
         if primera_vez_rotacion == 0:
             posicion_x = jugador.x
@@ -182,12 +180,20 @@ def update():
                 if angulo_aumento < 15:
                     angulo_aumento += 0.1
                 bomba_1.angle += angulo_aumento
+                giro_sfx += 1
+                if giro_sfx > 135/angulo_aumento:
+                    giro_sfx = 0
+                    spin_sfx.play()
+                    
+
+    
     else:
         angulo_aumento = 0
         bomba_1.angle = 0
         bomba_1.x = 5000
         bomba_print = False
         primera_vez_rotacion = 0
+        giro_sfx = 0
         
     if bubble == True:
         global primera_vez
@@ -294,11 +300,11 @@ def update():
 
     if bomb_type == 1:
         if not bomba_y_vida:
-            numero_de_bombas = 3
+            numero_de_bombas = 2
             for x in range(0, 61, 30):
                 vida = Actor("vida_sprite.png", (420+x, 50))
                 numero_vidas.append(vida)
-            for x_2 in range(0, 51, 25):
+            for x_2 in range(0, 26, 25):
                 bomba_appendar = Actor("bomba_sprite.png", (420+x_2, 90))
                 numero_bombas.append(bomba_appendar)
                 bomba_y_vida = True
@@ -623,7 +629,5 @@ def reinicio_bombas():
     for eee in range(numero_de_bombas):
         bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
         numero_bombas.append(bomba_appendar)
-
-
 
 pgzrun.go()
