@@ -15,7 +15,7 @@ eee = True
 invencibilidad = False
 numero_pa_eliminar_bomba = 0
 numero_pa_eliminar_vida = 0
-daño_golpe = 3
+daño_golpe = 5
 suma_1 = 8
 suma_2 = -8
 aumento_nuclear = 5
@@ -67,12 +67,21 @@ diferencia_y = 0
 hipotenusa = 0
 musica = sounds.load("ronald.mp3")
 musica.play(-1)
-musica.set_volume(0.5)
+musica.set_volume(0.4)
 bala_sfx = sounds.load("disparo.wav")
 bala_sfx.set_volume(0.1)
 spin_sfx = sounds.load("rope_spin.wav")
 spin_sfx.set_volume(0.4)
 giro_sfx = 0
+contador_movimiento = 0
+temporizador_movimiento = 0
+dif_x = 0
+dif_y = 0
+x = 0
+y = 0
+validacion_1 = False
+validacion_2 = False
+
 
 def draw():
 
@@ -171,10 +180,10 @@ def update():
             bomba_1.x -= 1.2 * (abs(diferencia_x) / hipotenusa)
         
         if bomba_1.y > 300:
-            bomba_1.y -= 1.2 * ( abs(diferencia_y) / hipotenusa)
+            bomba_1.y -= 1.2 * (abs(diferencia_y) / hipotenusa)
         else: 
             bomba_1.y += 1.2 * (abs(diferencia_y) / hipotenusa)
-        for a in range(720):
+        for _ in range(720):
             numero += 1
             if numero == 100:
                 if angulo_aumento < 15:
@@ -367,11 +376,17 @@ def update():
 
     if vida_max > 160:
         bala_spin(True)
+        movimiento_avanzado(True)
     if 70 < vida_max <=160:
         bala_circulos("si")
-        movimiento_rival(True)
+        bala_spin(True)
+        bala_spin(True)
+        movimiento_avanzado(True)
+
     if vida_max <= 70:
         daño_golpe_cambio(25)
+        movimiento_avanzado(True)
+
 
     for cosa in bala_circular:
 
@@ -392,7 +407,7 @@ def update():
                 if enemigo in enemigos:
                     enemigos.remove(enemigo)
                     balas.remove(bala)
-        
+                    
         if (enemigo[0].y <= 26):
             if enemigo in enemigos:
                     enemigos.remove(enemigo)
@@ -537,7 +552,7 @@ def bala_circulos(e):
     global contador_enemigo_3
     if e == "si":
         contador_enemigo_3 += 1
-        if contador_enemigo_3 == 4:
+        if contador_enemigo_3 == 10:
             contador_enemigo_3 = 0
             for a in range(18):
                 numero_2 += 20
@@ -629,5 +644,51 @@ def reinicio_bombas():
     for eee in range(numero_de_bombas):
         bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
         numero_bombas.append(bomba_appendar)
+
+
+def movimiento_avanzado(Tru):
+    global contador_movimiento, validacion_1 ,validacion_2, temporizador_movimiento, dif_x, dif_y, x, y
+    if Tru == True:
+        if validacion_1 and validacion_2:
+                temporizador_movimiento = 0
+                contador_movimiento = 0
+                dif_x = 0
+                dif_y = 0
+                x = 0
+                y = 0
+                validacion_1 = False
+                validacion_2 = False
+        if contador_movimiento == 0:
+            contador_movimiento = randint(150, 300)
+        
+        if not temporizador_movimiento == contador_movimiento:
+            temporizador_movimiento += 1
+            x = randint(42, 360)
+            y = randint(34,160)
+            dif_x = x - atacante.x
+            dif_y = y - atacante.y
+
+        else:
+            if dif_x < 0:
+                if not atacante.x <= x:
+                    atacante.x += 0.02*dif_x
+                else:
+                    validacion_1 = True    
+            if dif_x > 0:
+                if not atacante.x >= x:
+                    atacante.x += 0.02*dif_x
+                else:
+                    validacion_1 = True
+            if dif_y < 0:
+                if not atacante.y <= y:
+                    atacante.y += 0.02*dif_y
+                else:
+                    validacion_2 = True
+            if dif_y > 0:
+                if not atacante.y >= y:
+                    atacante.y += 0.02*dif_y
+                else:
+                    validacion_2 = True
+                    ("Validacion_True")
 
 pgzrun.go()
