@@ -34,8 +34,8 @@ numero = 0
 angulo_aumento = 0
 fondito = "fondo_menu.png"  
 jugador = Actor('jugador.jpg', (200, 530))
-hitbox = Actor('hitbox', (200, 530))
-death_hitbox = Actor("hitbox.jpg", (200, 430))
+hitbox = Actor('hitbox.png', (200, 530))
+gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
 contador = 0
 contador_enemigo = 0
 bomba_2 = []
@@ -67,7 +67,7 @@ diferencia_y = 0
 hipotenusa = 0
 musica = sounds.load("ronald.mp3")
 musica.play(-1)
-musica.set_volume(0.4)
+musica.set_volume(0.1)
 bala_sfx = sounds.load("disparo.wav")
 bala_sfx.set_volume(0.1)
 spin_sfx = sounds.load("rope_spin.wav")
@@ -81,8 +81,8 @@ x = 0
 y = 0
 validacion_1 = False
 validacion_2 = False
-
-
+poder_bala = 1
+contador_cambio_bala = 0
 def draw():
 
     rango_visible.draw()
@@ -114,11 +114,11 @@ def draw():
         enemigo[0].draw()
 
     if focus == True:
+        gracia.draw()
         jugador.draw()
         hitbox.draw()
     else:
         jugador.draw()
-    death_hitbox.draw()
     atacante.draw()
 
     for bala in balas:
@@ -131,6 +131,7 @@ def update():
     global bomba
     global numero_de_bombas
     global invencibilidad
+    gracia.pos = jugador.pos
     direccion = ""
     if (keyboard.up):
         direccion = 'up'
@@ -149,6 +150,9 @@ def update():
 
     if (keyboard.z):
         disparo(True)
+        cambio_bala(True)
+    else:
+        cambio_bala(False)
 
     if (keyboard.e):
         bala_circulos("si")
@@ -360,16 +364,13 @@ def update():
             numero_pa_eliminar_vida = 0
 
     for bala in balas:
-        global vida_max, vida_verde, daño, daño_golpe
+        global vida_max, vida_verde, daño, daño_golpe, poder_bala
         bala.y -= 10
         verificar_rango(bala)
-        if bala.colliderect(death_hitbox):
-            balas.remove(bala)
-            death_hitbox.x += randint(-10, 10)
         if bala.colliderect(atacante):
-            daño +=1
+            daño += 1*poder_bala/3
             balas.remove(bala)
-            if daño == daño_golpe:
+            if daño >= daño_golpe:
                 daño = 0
                 vida_max -= 10
                 vida_verde = Rect((65, 20), (vida_max, 10))
@@ -379,7 +380,6 @@ def update():
         movimiento_avanzado(True)
     if 70 < vida_max <=160:
         bala_circulos("si")
-        bala_spin(True)
         bala_spin(True)
         movimiento_avanzado(True)
 
@@ -478,13 +478,13 @@ def mover_jugador(direccion, distancia = 4):
         hitbox.x = 379
 
 def disparo(disparo):
-    global contador
+    global contador, poder_bala
     if focus == False:
         if disparo == True:
             contador += 1
             if contador == espera:
                 contador = 0
-                bala = Actor('hitbox', (jugador.x, jugador.y - 9))
+                bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
                 balas.append(bala)
                 bala_sfx.play(1)
     else:
@@ -492,9 +492,9 @@ def disparo(disparo):
             contador += 1
             if contador == espera:
                 contador = 0
-                bala = Actor('hitbox', (jugador.x, jugador.y - 9))
-                bala_2 = Actor('hitbox', (jugador.x + 15, jugador.y - 9))
-                bala_3 = Actor('hitbox', (jugador.x - 15, jugador.y - 9))
+                bala = Actor('bala_'+str(poder_bala), (jugador.x, jugador.y - 9))
+                bala_2 = Actor('bala_'+str(poder_bala), (jugador.x + 15, jugador.y - 9))
+                bala_3 = Actor("bala_"+str(poder_bala), (jugador.x - 15, jugador.y - 9))
                 balas.append(bala)
                 balas.append(bala_2)
                 balas.append(bala_3)
@@ -562,28 +562,6 @@ def bala_circulos(e):
                 bala = Actor("bala.png", atacante.pos)
                 todo = (bala, coord)
                 circulos_wa.append(todo)
-            
-def movimiento_rival(wa):
-    global contador_enemigo_2
-    global aleatorio
-    global atacante
-    global eee
-    random = 0
-    if eee == True:
-        atacante.x = 145
-        eee = False
-    if wa == True:
-        contador_enemigo_2 += 1
-        if contador_enemigo_2 == 2:
-            contador_enemigo_2 = 0
-            random += 10
-            if random == 360:
-                random = 0
-            aleatorio += random
-            x = math.sin(math.radians(aleatorio))
-            y = math.cos(math.radians(aleatorio*3))
-            atacante.x += 15*x
-            atacante.y += 6*y
 
 def bomba(a):
     global rotation
@@ -689,6 +667,22 @@ def movimiento_avanzado(Tru):
                     atacante.y += 0.02*dif_y
                 else:
                     validacion_2 = True
-                    ("Validacion_True")
+
+
+    
+
+def cambio_bala(sdas):
+    global poder_bala, contador_cambio_bala
+    if sdas:
+        contador_cambio_bala += 1
+        if 0<= contador_cambio_bala<= 240:
+            poder_bala = 1
+        elif 240 < contador_cambio_bala <= 900:
+            poder_bala = 2
+        elif 480 <contador_cambio_bala:
+            poder_bala = 3
+    else:
+        poder_bala = 1
+        contador_cambio_bala = 0
 
 pgzrun.go()
