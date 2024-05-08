@@ -36,6 +36,7 @@ fondito = "fondo_menu.png"
 jugador = Actor('jugador.jpg', (200, 530))
 hitbox = Actor('hitbox.png', (200, 530))
 gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
+lista_graciados = []
 contador = 0
 contador_enemigo = 0
 bomba_2 = []
@@ -83,6 +84,8 @@ validacion_1 = False
 validacion_2 = False
 poder_bala = 1
 contador_cambio_bala = 0
+gracia_numero = 0
+puntuacion = 0
 def draw():
 
     rango_visible.draw()
@@ -107,6 +110,8 @@ def draw():
         vida.draw()
     for bomba in numero_bombas:
         bomba.draw()
+    screen.draw.text(str(gracia_numero), (420, 120), color="black", fontname="jaini_regular.ttf", fontsize = 30)
+    screen.draw.text(str(puntuacion), (550, 60), color="black", fontname="jaini_regular.ttf", fontsize = 50)
 
     screen.draw.rect(vida_verde, (0, 255, 0))
     screen.draw.filled_rect(vida_verde, (0, 255, 0))
@@ -118,7 +123,7 @@ def draw():
         jugador.draw()
         hitbox.draw()
     else:
-        jugador.draw()
+        jugador.draw()  
     atacante.draw()
 
     for bala in balas:
@@ -197,8 +202,6 @@ def update():
                 if giro_sfx > 135/angulo_aumento:
                     giro_sfx = 0
                     spin_sfx.play()
-                    
-
     
     else:
         angulo_aumento = 0
@@ -364,12 +367,13 @@ def update():
             numero_pa_eliminar_vida = 0
 
     for bala in balas:
-        global vida_max, vida_verde, daño, daño_golpe, poder_bala
+        global vida_max, vida_verde, daño, daño_golpe, poder_bala, puntuacion
         bala.y -= 10
         verificar_rango(bala)
         if bala.colliderect(atacante):
             daño += 1*poder_bala/3
             balas.remove(bala)
+            puntuacion += 20
             if daño >= daño_golpe:
                 daño = 0
                 vida_max -= 10
@@ -427,10 +431,12 @@ def update():
         if coso[0].colliderect(bomba_1):
             if coso in bala_circular:
                 bala_circular.remove(coso)
+                puntuacion += 30
         for burbuja in bomba_2:
             if coso[0].colliderect(burbuja[0]):
                 if coso in bala_circular:
                     bala_circular.remove(coso)
+                    puntuacion += 30
                 
 
     for coso in circulos_wa:   
@@ -438,11 +444,23 @@ def update():
             circulos_wa.remove(coso)
         if coso[0].colliderect(bomba_1):
             if coso in circulos_wa:
-                circulos_wa.remove(coso)    
+                circulos_wa.remove(coso)
+                puntuacion += 30    
         for burbuja in bomba_2:
             if coso[0].colliderect(burbuja[0]):
                 if coso in circulos_wa:
                     circulos_wa.remove(coso)
+                    puntuacion += 30
+    
+    for bala in circulos_wa or bala_circular:
+        global lista_graciados, gracia_numero
+        if bala[0].colliderect(gracia):
+            if not bala[0] in lista_graciados:
+                lista_graciados.append(bala[0])
+                gracia_numero += 1
+                print(gracia_numero)
+
+
 
 
 
@@ -478,7 +496,7 @@ def mover_jugador(direccion, distancia = 4):
         hitbox.x = 379
 
 def disparo(disparo):
-    global contador, poder_bala
+    global contador, poder_bala, puntuacion
     if focus == False:
         if disparo == True:
             contador += 1
@@ -486,6 +504,7 @@ def disparo(disparo):
                 contador = 0
                 bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
                 balas.append(bala)
+                puntuacion += 5
                 bala_sfx.play(1)
     else:
         if disparo == True:
@@ -498,6 +517,7 @@ def disparo(disparo):
                 balas.append(bala)
                 balas.append(bala_2)
                 balas.append(bala_3)
+                puntuacion += 15
                 bala_sfx.play()
 
 def spawn_enemigos(enemigo):
@@ -597,8 +617,10 @@ def bomba_explosion(Comprobante):
     if Comprobante == True:
         for bala in bala_circular:
             bala_circular.remove(bala)
+            puntuacion += 30
         for bala in circulos_wa:
             circulos_wa.remove(bala)
+            puntuacion += 30
         contador_explosion += 1
         if contador_explosion == 20:
             bomba_activada = True
