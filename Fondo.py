@@ -119,7 +119,7 @@ def draw():
         jugador.draw()  
     for enemigo in enemigos:
         enemigo[0].draw()
-        
+
     atacante.draw()
 
     for bala in balas:
@@ -287,10 +287,11 @@ def update():
         bala_spin(False)
 
     if keyboard.x:
-        if not len(numero_bombas) == 0:
-            if not bomba_cd:
-                activa = True
-                bomba_menos()
+        if not pausa:
+            if not len(numero_bombas) == 0:
+                if not bomba_cd:
+                    activa = True
+                    bomba_menos()
 
     if keyboard.escape:
         if not escape_cooldown:
