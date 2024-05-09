@@ -8,7 +8,7 @@ HEIGHT = 600
 activa = False
 focus = False
 primera_vez = 0
-bomb_type = 2
+build = 2
 bomba_y_vida = False
 tiempo_inicial_tecla = 0
 eee = True
@@ -39,12 +39,22 @@ gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
 menu_pausa = Actor('pausa.png', (-163, 300))
 lista_graciados = []
 contador = 0
+contador_extra = 0
 contador_enemigo = 0
 bomba_2 = []
 bomba_3 = Actor("nuclear.png", (5000, 300))
-espera = 5
+espera_bala = 0
+espera = 0
+espera_extra = 0
 espera_enemigos = 5
 balas = []
+teledirigidas = []
+teledirigido_ex = []
+tele_x = 0
+tele_y = 0
+hipo = 0
+mov_x = 0
+mov_y = 0
 enemigos = []
 enemigo_spawn = True
 rango_visible = Actor("cubo_visible.jpg", (205, 300))
@@ -70,8 +80,14 @@ hipotenusa = 0
 musica = sounds.load("ronald.mp3")
 musica.play(-1)
 musica.set_volume(0.1)
-bala_sfx = sounds.load("disparo.wav")
-bala_sfx.set_volume(0.1)
+bala_1_sfx = sounds.load("disparo.wav")
+bala_1_sfx.set_volume(0.1)
+bala_2_sfx = sounds.load("finger_snap.wav")
+bala_2_sfx.set_volume(0.3)
+bala_2_extra_sfx = sounds.load("bubble.wav")
+bala_2_extra_sfx.set_volume(0.3)
+big_b_sfx = sounds.load("pop.wav")
+big_b_sfx.set_volume(0.3)
 spin_sfx = sounds.load("rope_spin.wav")
 spin_sfx.set_volume(0.4)
 giro_sfx = 0
@@ -91,10 +107,12 @@ pausa = False
 escape_cooldown = False
 constante_pausa = 23
 rebote_pausa = 0
+carga_1 = Actor("poder_1",(430, 170))
+carga_2 = Actor("poder_2", (465, 170))
+carga_3 = Actor("poder_3",(500, 170))
 
 
 def draw():
-
     rango_visible.draw()
     for cosa in bala_circular:
         cosa[0].draw()
@@ -103,12 +121,12 @@ def draw():
         cosa[0].draw()
 
     if bomba_print:
-        if bomb_type == 1:
+        if build == 1:
             bomba_1.draw()
-        if bomb_type == 2:
+        if build == 2:
             for burbuja in bomba_2:
                 burbuja[0].draw()
-        if bomb_type == 3:
+        if build == 3:
             bomba_3.draw()
             
     if focus == True:
@@ -124,6 +142,10 @@ def draw():
 
     for bala in balas:
         bala.draw()
+    for tele in teledirigidas:
+        tele.draw()
+    for tele_b in teledirigido_ex:
+        tele_b.draw()
 
     menu_pausa.draw()
 
@@ -137,9 +159,15 @@ def draw():
     screen.draw.text(str(puntuacion), (550, 60), color="black", fontname="jaini_regular.ttf", fontsize = 50)
     screen.draw.rect(vida_verde, (0, 255, 0))
     screen.draw.filled_rect(vida_verde, (0, 255, 0))
-        
+
+    carga_1.draw()
+    if poder_bala >= 2:
+        carga_2.draw()
+    if poder_bala == 3:
+        carga_3.draw()
+
 def update():
-    global numero_bombas, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida
+    global numero_bombas, espera, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     direccion = ""
@@ -304,11 +332,11 @@ def update():
     if activa == True:
         if not pausa:
             espera_nojoda += 1
-            if bomb_type == 1:
+            if build == 1:
                 espera = 300
-            if bomb_type == 2:
+            if build == 2:
                 espera = 600
-            if bomb_type == 3:
+            if build == 3:
                 espera = 600
 
             if espera_nojoda <= espera:
@@ -320,10 +348,11 @@ def update():
                 espera_nojoda = 0
                 bomba(False)
 
-    if bomb_type == 1:
+    if build == 1:
         if not pausa:
             if not bomba_y_vida:
                 numero_de_bombas = 2
+                espera_bala = 5
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -332,10 +361,12 @@ def update():
                     numero_bombas.append(bomba_appendar)
                     bomba_y_vida = True
 
-    elif bomb_type == 2:
+    elif build == 2:
         if not pausa:
             if not bomba_y_vida:
                 numero_de_bombas = 4
+                espera_bala = 8
+                espera_extra = 32
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -344,10 +375,11 @@ def update():
                     numero_bombas.append(bomba_appendar)
                     bomba_y_vida = True
 
-    elif bomb_type == 3:
+    elif build == 3:
         if not pausa:
             if not bomba_y_vida:
                 numero_de_bombas = 1
+                espera_bala = 7
                 for x in range(0, 181, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -365,7 +397,6 @@ def update():
                 else:
                     sys.exit()
                 
-
     if invencibilidad == True:
         if not pausa:
             numero_pa_eliminar_vida += 1
@@ -381,14 +412,41 @@ def update():
             bala.y -= 10
             verificar_rango(bala)
             if bala.colliderect(atacante):
-                daño += 1*poder_bala/3
+                if build == 1:
+                    daño += poder_bala/3
+                elif build == 2:
+                    daño += 0.6
                 balas.remove(bala)
                 puntuacion += 20
                 if daño >= daño_golpe:
                     daño = 0
                     vida_max -= 10
                     vida_verde = Rect((65, 20), (vida_max, 10))
+            
+    for tele in teledirigidas:
+        if not pausa:
+            teledirigir_balas(tele)
+            if tele.colliderect(atacante):
+                daño += 0.4
+                teledirigidas.remove(tele)
+                puntuacion += 10
+                if daño >= daño_golpe:
+                    daño = 0
+                    vida_max -= 10
+                    vida_verde = Rect((65, 20), (vida_max, 10))
 
+    for big_b in teledirigido_ex:
+        if not pausa:
+            teledirigir_balas(big_b)
+            if big_b.colliderect(atacante):
+                daño += 1.5
+                teledirigido_ex.remove(big_b)
+                puntuacion += 20
+                if daño >= daño_golpe:
+                    daño = 0
+                    vida_max -= 10
+                    vida_verde = Rect((65, 20), (vida_max, 10))
+                
     if vida_max > 160:
         bala_spin(True)
         movimiento_avanzado(True)
@@ -400,7 +458,6 @@ def update():
     if vida_max <= 70:
         daño_golpe_cambio(25)
         movimiento_avanzado(True)
-
 
     for cosa in bala_circular:
         if not pausa:
@@ -446,8 +503,7 @@ def update():
             if coso[0].colliderect(burbuja[0]):
                 if coso in bala_circular:
                     bala_circular.remove(coso)
-                    puntuacion += 30
-                
+                    puntuacion += 30    
 
     for coso in circulos_wa:   
         if not coso[0].colliderect(rango_visible):
@@ -482,16 +538,10 @@ def update():
         constante_pausa = 23
         rebote_pausa = 0
 
-
     if pausa:
         pygame.mixer.pause()
     else:
         pygame.mixer.unpause()
-
-
-
-
-
 
 def mover_jugador(direccion, distancia = 4):
     if not pausa:
@@ -524,32 +574,61 @@ def mover_jugador(direccion, distancia = 4):
         hitbox.x = 379
 
 def disparo(disparo):
-    global contador, poder_bala, puntuacion
-    if not pausa:
-        if focus == False:
-            if disparo == True:
-                contador += 1
-                if contador == espera:
-                    contador = 0
-                    bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
-                    balas.append(bala)
-                    puntuacion += 5
-                    bala_sfx.play(1)
-        else:
-            if disparo == True:
-                contador += 1
-                if contador == espera:
-                    contador = 0
-                    bala = Actor('bala_'+str(poder_bala), (jugador.x, jugador.y - 9))
-                    bala_2 = Actor('bala_'+str(poder_bala), (jugador.x + 15, jugador.y - 9))
-                    bala_3 = Actor("bala_"+str(poder_bala), (jugador.x - 15, jugador.y - 9))
-                    balas.append(bala)
-                    balas.append(bala_2)
-                    balas.append(bala_3)
-                    puntuacion += 15
-                    bala_sfx.play(1)
-                
+    global contador, contador_extra, poder_bala, puntuacion, espera_bala, espera_extra
+    if build == 1:
+        if not pausa:
+            if focus == False:
+                if disparo == True:
+                    contador += 1
+                    if contador == espera_bala:
+                        contador = 0
+                        bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
+                        balas.append(bala)
+                        puntuacion += 5
+                        bala_1_sfx.play(1)
+            else:
+                if disparo == True:
+                    contador += 1
+                    if contador == espera_bala:
+                        contador = 0
+                        bala = Actor('bala_'+str(poder_bala), (jugador.x, jugador.y - 9))
+                        bala_2 = Actor('bala_'+str(poder_bala), (jugador.x + 15, jugador.y - 9))
+                        bala_3 = Actor("bala_"+str(poder_bala), (jugador.x - 15, jugador.y - 9))
+                        balas.append(bala)
+                        balas.append(bala_2)
+                        balas.append(bala_3)
+                        puntuacion += 15
+                        bala_1_sfx.play(1)
+    elif build == 2:
+        if not pausa:
+            if focus == False:
+                if disparo == True:
+                    contador += 1
+                    contador_extra += 1
+                    if contador == espera_bala:
+                        contador = 0
+                        bala = Actor('bala_1', (jugador.x, jugador.y -9))
+                        balas.append(bala)
+                        puntuacion += 15
+                        bala_2_sfx.play(1)
+                    if contador_extra >= espera_extra/poder_bala:
+                        contador_extra = 0
+                        bala_2_extra_sfx.play()
+                        teledirigido = Actor('auto_bubble',(jugador.x + 15, jugador.y - 9))
+                        teledirigido_2 = Actor('auto_bubble',(jugador.x - 15, jugador.y - 9))
+                        teledirigidas.append(teledirigido)
+                        teledirigidas.append(teledirigido_2)
+            else:
+                contador_extra += 1
+                if contador_extra >= espera_extra-(poder_bala**2 + 2*poder_bala - 3):
+                    contador_extra = 0
+                    big_b_sfx.play()
+                    big_b = Actor('big_b', (jugador.x + 15, jugador.y))
+                    teledirigido_ex.append(big_b)
+                    
 
+
+                
 def spawn_enemigos(enemigo):
     global contador_enemigo
     if enemigo == True:
@@ -578,7 +657,6 @@ def seno_random(valor):
     else:
         x = 0 
     return round(x, 2), round(y, 2)
-
 
 def bala_spin(a):
     global numero
@@ -618,23 +696,22 @@ def bala_circulos(e):
 def bomba(a):
     global rotation, bubble, nuclear
     if not pausa:
-        if bomb_type == 1:
+        if build == 1:
             if a == True:
                 if not len(numero_bombas) < 0:
                     rotation = True
             else:
                 rotation = False
-        elif bomb_type == 2:
+        elif build == 2:
             if a == True:
                 bubble = True
             else:
                 bubble = False
-        elif bomb_type == 3:
+        elif build == 3:
             if a == True:
                 nuclear = True
             else:
                 nuclear = False
-
 
 def daño_golpe_cambio(entero: int):
     global daño_golpe
@@ -667,7 +744,6 @@ def bomba_menos():
                 numero_bombas.pop(-1)
                 numero_pa_eliminar_bomba = 0
 
-
 def reinicio_bombas():
     global numero_bombas
     global numero_de_bombas
@@ -675,7 +751,6 @@ def reinicio_bombas():
     for eee in range(numero_de_bombas):
         bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
         numero_bombas.append(bomba_appendar)
-
 
 def movimiento_avanzado(Tru):
     global contador_movimiento, validacion_1 ,validacion_2, temporizador_movimiento, dif_x, dif_y, x, y
@@ -721,23 +796,47 @@ def movimiento_avanzado(Tru):
                         atacante.y += 0.02*dif_y
                     else:
                         validacion_2 = True
-
-
     
-
 def cambio_bala(sdas):
-    global poder_bala, contador_cambio_bala
-    if not pausa:
-        if sdas:
-            contador_cambio_bala += 1
-            if 0<= contador_cambio_bala<= 240:
+    global poder_bala, contador_cambio_bala, contador_extra
+    if build == 1:
+        if not pausa:
+            if sdas:
+                contador_cambio_bala += 1
+                if 0<= contador_cambio_bala<= 240:
+                    poder_bala = 1
+                elif 240 < contador_cambio_bala <= 900:
+                    poder_bala = 2
+                elif 480 <contador_cambio_bala:
+                    poder_bala = 3
+            else:
                 poder_bala = 1
-            elif 240 < contador_cambio_bala <= 900:
-                poder_bala = 2
-            elif 480 <contador_cambio_bala:
-                poder_bala = 3
-        else:
-            poder_bala = 1
-            contador_cambio_bala = 0
+                contador_cambio_bala = 0
+    elif build == 2:
+        if not pausa:
+            if sdas:
+                contador_cambio_bala += 1
+                if 0<= contador_cambio_bala<= 300:
+                    poder_bala = 1
+                elif 300 < contador_cambio_bala <= 600:
+                    poder_bala = 2
+                elif 600 <contador_cambio_bala:
+                    poder_bala = 3
+            else:
+                poder_bala = 1
+                contador_cambio_bala = 0
+
+def teledirigir_balas(bala):
+    global tele_x, tele_y, hipo, mov_x, mov_y
+    tele_x = atacante.x - bala.x
+    tele_y = atacante.y - bala.y
+    hipo = math.sqrt(tele_x ** 2 + tele_y ** 2)
+
+    if hipo != 0:
+        mov_x = tele_x / hipo
+        mov_y = tele_y / hipo
+    
+    bala.x += 6 * mov_x
+    bala.y += 6 * mov_y
 
 pgzrun.go()
