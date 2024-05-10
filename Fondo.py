@@ -1,3 +1,5 @@
+import os
+os.environ['SDL_VIDEO_WINDOW_POS'] = '460,140'
 import pygame
 import pgzrun
 import math
@@ -90,7 +92,20 @@ big_b_sfx = sounds.load("pop.wav")
 big_b_sfx.set_volume(0.3)
 spin_sfx = sounds.load("rope_spin.wav")
 spin_sfx.set_volume(0.4)
-giro_sfx = 0
+bala_3_sfx = sounds.load("radiator.wav")
+bala_3_sfx.set_volume(0.3)
+dispersion_sfx = sounds.load("plasma.wav")
+bala_3_sfx.set_volume(0.7)
+misil_carga = sounds.load("charge.wav")
+misil_carga.set_volume(0.8)
+misil_lanzamiento = sounds.load("launching.wav")
+misil_lanzamiento.set_volume(0.7)
+misil_explosion = sounds.load("explosion.wav")
+misil_explosion.set_volume(0.6)
+advertencia_bomba = sounds.load("nuclear_alert.mp3")
+advertencia_bomba.set_volume(0.8)
+explosion_bomba_sfx = sounds.load("explosion_bomba.wav")
+giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
 dif_x = 0
@@ -110,6 +125,12 @@ rebote_pausa = 0
 carga_1 = Actor("poder_1",(430, 170))
 carga_2 = Actor("poder_2", (465, 170))
 carga_3 = Actor("poder_3",(500, 170))
+velocidad_balas = 0
+dispersion = []
+dispersados = []
+misiles = []
+ultima_vez = 0
+reloj = pygame.time.Clock()
 
 
 def draw():
@@ -146,6 +167,11 @@ def draw():
         tele.draw()
     for tele_b in teledirigido_ex:
         tele_b.draw()
+    for mini in dispersados:
+        mini[0].draw()
+    for misi in misiles:
+        misi[0].draw()
+
 
     menu_pausa.draw()
 
@@ -159,17 +185,22 @@ def draw():
     screen.draw.text(str(puntuacion), (550, 60), color="black", fontname="jaini_regular.ttf", fontsize = 50)
     screen.draw.rect(vida_verde, (0, 255, 0))
     screen.draw.filled_rect(vida_verde, (0, 255, 0))
-
-    carga_1.draw()
+    if poder_bala >= 1:
+        carga_1.draw()
     if poder_bala >= 2:
         carga_2.draw()
     if poder_bala == 3:
         carga_3.draw()
+    reloj.tick()
+    screen.draw.text(str(round(reloj.get_fps(), 1)), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-60))
+
 
 def update():
-    global numero_bombas, espera, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, ultima_vez, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
+
+
     direccion = ""
     if (keyboard.up):
         direccion = 'up'
@@ -230,9 +261,9 @@ def update():
                     if angulo_aumento < 15:
                         angulo_aumento += 0.1
                     bomba_1.angle += angulo_aumento
-                    giro_sfx += 1
-                    if giro_sfx > 135/angulo_aumento:
-                        giro_sfx = 0
+                    giro_cooldown_sfx += 1
+                    if giro_cooldown_sfx > 135/angulo_aumento:
+                        giro_cooldown_sfx = 0
                         spin_sfx.play()
     
     else:
@@ -241,7 +272,7 @@ def update():
         bomba_1.x = 5000
         bomba_print = False
         primera_vez_rotacion = 0
-        giro_sfx = 0
+        giro_cooldown_sfx = 0
         
     if bubble == True:
         bomba_print = True
@@ -260,10 +291,11 @@ def update():
         primera_vez = 0
     
     if nuclear == True:
+        bomba_print = True
         if not pausa:
             if bomba_activada == False:
-                bomba_print = True
                 if primera_bomba == 0:
+                    advertencia_bomba.play()
                     bomba_3.angle = 0
                     bomba_3.x = jugador.x+5
                     bomba_3.y = jugador.y
@@ -325,7 +357,6 @@ def update():
         if not escape_cooldown:
             pausa = not pausa
             escape_cooldown = True
-            print(pausa)
     else:
         escape_cooldown = False
         
@@ -352,7 +383,8 @@ def update():
         if not pausa:
             if not bomba_y_vida:
                 numero_de_bombas = 2
-                espera_bala = 5
+                espera_bala = 7
+                velocidad_balas = 10
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -367,6 +399,7 @@ def update():
                 numero_de_bombas = 4
                 espera_bala = 8
                 espera_extra = 32
+                velocidad_balas = 15
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -379,7 +412,9 @@ def update():
         if not pausa:
             if not bomba_y_vida:
                 numero_de_bombas = 1
-                espera_bala = 7
+                espera_bala = 15
+                velocidad_balas = 5
+                poder_bala = 0
                 for x in range(0, 181, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -409,44 +444,73 @@ def update():
 
     for bala in balas:
         if not pausa:
-            bala.y -= 10
+            bala.y -= velocidad_balas
             verificar_rango(bala)
             if bala.colliderect(atacante):
                 if build == 1:
                     daño += poder_bala/3
                 elif build == 2:
                     daño += 0.6
+                elif build == 3:
+                    daño += 2
                 balas.remove(bala)
                 puntuacion += 20
-                if daño >= daño_golpe:
-                    daño = 0
-                    vida_max -= 10
-                    vida_verde = Rect((65, 20), (vida_max, 10))
-            
+            if build == 3:
+                bala.angle += 3
+                if not any(tupla[0] == bala for tupla in dispersion):
+                    tupla = [bala, 0]
+                    dispersion.append(tupla)
+
+    for tupla in dispersion:
+        if not pausa: 
+            tupla[1] += 1
+            cordi = tupla[0].pos
+            if tupla[0].colliderect(atacante):
+                dispersion.remove(tupla)
+            if tupla[1] >= 70:
+                if tupla[0] in balas:
+                    balas.remove(tupla[0])
+                    balas_dispersadas(cordi)
+                    dispersion_sfx.play()
+                if tupla in dispersion:
+                    dispersion.remove(tupla)
+
     for tele in teledirigidas:
         if not pausa:
-            teledirigir_balas(tele)
+            teledirigir_balas(tele, 6)
             if tele.colliderect(atacante):
                 daño += 0.4
                 teledirigidas.remove(tele)
                 puntuacion += 10
-                if daño >= daño_golpe:
-                    daño = 0
-                    vida_max -= 10
-                    vida_verde = Rect((65, 20), (vida_max, 10))
+    
+    for misi in misiles:
+        teledirigir_balas(misi[0], 12)
+        if misi[0].colliderect(atacante):
+            if misi[1] == 1:
+                daño += 5
+            elif misi[1] == 2:
+                daño += 10
+            elif misi[1] == 3:
+                daño += 20
+            misil_explosion.play()
+            misiles.remove(misi)
+
+    
+    if daño >= daño_golpe:
+        if daño > daño_golpe:
+            daño = daño - daño_golpe
+        else:
+            daño = 0
+        vida_max -= 10
+        vida_verde = Rect((65, 20), (vida_max, 10))
 
     for big_b in teledirigido_ex:
         if not pausa:
-            teledirigir_balas(big_b)
+            teledirigir_balas(big_b, 7)
             if big_b.colliderect(atacante):
                 daño += 1.5
                 teledirigido_ex.remove(big_b)
                 puntuacion += 20
-                if daño >= daño_golpe:
-                    daño = 0
-                    vida_max -= 10
-                    vida_verde = Rect((65, 20), (vida_max, 10))
-                
     if vida_max > 160:
         bala_spin(True)
         movimiento_avanzado(True)
@@ -458,6 +522,16 @@ def update():
     if vida_max <= 70:
         daño_golpe_cambio(25)
         movimiento_avanzado(True)
+
+    for mini in dispersados:
+        if not pausa:
+            mini[0].x += 6 * mini[1][0]
+            mini[0].y -= 6 * mini[1][1]
+            if mini[0].colliderect(atacante):
+                daño += 0.3
+                dispersados.remove(mini)
+            if not mini[0].colliderect(rango_visible):
+                dispersados.remove(mini)
 
     for cosa in bala_circular:
         if not pausa:
@@ -523,7 +597,6 @@ def update():
             if not bala[0] in lista_graciados:
                 lista_graciados.append(bala[0])
                 gracia_numero += 1
-                print(gracia_numero)
 
     if pausa:
         if  rebote_pausa < 3:
@@ -572,7 +645,6 @@ def mover_jugador(direccion, distancia = 4):
     if (jugador.x >= 379):
         jugador.x = 379
         hitbox.x = 379
-
 def disparo(disparo):
     global contador, contador_extra, poder_bala, puntuacion, espera_bala, espera_extra
     if build == 1:
@@ -585,7 +657,7 @@ def disparo(disparo):
                         bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
                         balas.append(bala)
                         puntuacion += 5
-                        bala_1_sfx.play(1)
+                        bala_1_sfx.play()
             else:
                 if disparo == True:
                     contador += 1
@@ -598,7 +670,7 @@ def disparo(disparo):
                         balas.append(bala_2)
                         balas.append(bala_3)
                         puntuacion += 15
-                        bala_1_sfx.play(1)
+                        bala_1_sfx.play()
     elif build == 2:
         if not pausa:
             if focus == False:
@@ -607,7 +679,7 @@ def disparo(disparo):
                     contador_extra += 1
                     if contador == espera_bala:
                         contador = 0
-                        bala = Actor('bala_1', (jugador.x, jugador.y -9))
+                        bala = Actor('gota', (jugador.x, jugador.y -9))
                         balas.append(bala)
                         puntuacion += 15
                         bala_2_sfx.play(1)
@@ -623,9 +695,18 @@ def disparo(disparo):
                 if contador_extra >= espera_extra-(poder_bala**2 + 2*poder_bala - 3):
                     contador_extra = 0
                     big_b_sfx.play()
-                    big_b = Actor('big_b', (jugador.x + 15, jugador.y))
+                    big_b = Actor('big_b', (jugador.x , jugador.y))
                     teledirigido_ex.append(big_b)
-                    
+    elif build == 3:
+        if not pausa:
+            if focus == False:
+                if disparo == True:
+                    contador += 1
+                    if contador == espera_bala:
+                        contador = 0
+                        atomo = Actor('atom', (jugador.x, jugador.y -9))
+                        balas.append(atomo)
+                        bala_3_sfx.play()
 
 
                 
@@ -647,6 +728,8 @@ def verificar_rango(objeto):
             balas.remove(objeto)
         if objeto in enemigos:
             enemigos.remove(objeto)
+        if objeto in dispersados:
+            dispersados.remove(objeto)
 
 def seno_random(valor):
     y = math.sin(math.radians(valor))
@@ -719,9 +802,7 @@ def daño_golpe_cambio(entero: int):
 
 def bomba_explosion(Comprobante):
     if not pausa:
-        global activa
-        global bomba_activada
-        global contador_explosion
+        global activa, bomba_activada, contador_explosion, puntuacion
         if Comprobante == True:
             for bala in bala_circular:
                 bala_circular.remove(bala)
@@ -729,12 +810,17 @@ def bomba_explosion(Comprobante):
             for bala in circulos_wa:
                 circulos_wa.remove(bala)
                 puntuacion += 30
+            if contador_explosion == 0:
+                explosion_bomba_sfx.play()
             contador_explosion += 1
-            if contador_explosion == 20:
+            if contador_explosion == 60:
                 bomba_activada = True
-                numero_vidas.pop(-1)
-                reinicio_bombas()
-    
+                if not len(numero_vidas) == 0:
+                    numero_vidas.pop(-1)
+                    reinicio_bombas()
+                else:
+                    sys.exit()
+        
 def bomba_menos():
     global numero_bombas
     global numero_pa_eliminar_bomba
@@ -825,18 +911,66 @@ def cambio_bala(sdas):
             else:
                 poder_bala = 1
                 contador_cambio_bala = 0
+    elif build == 3:
+        if not pausa:
+            if focus:
+                if sdas:
+                    contador_cambio_bala += 1
+                    if contador_cambio_bala == 60 or contador_cambio_bala == 180 or contador_cambio_bala == 300:
+                        misil_carga.play()
+                    if 60 <= contador_cambio_bala<= 180:
+                        poder_bala = 1
+                    elif 180 < contador_cambio_bala <= 300:
+                        poder_bala = 2
+                    elif 300 <contador_cambio_bala:
+                        poder_bala = 3
+                else:
+                    if poder_bala > 0:
+                        misil(poder_bala)
+                    poder_bala = 0
+                    contador_cambio_bala = 0
 
-def teledirigir_balas(bala):
-    global tele_x, tele_y, hipo, mov_x, mov_y
-    tele_x = atacante.x - bala.x
-    tele_y = atacante.y - bala.y
-    hipo = math.sqrt(tele_x ** 2 + tele_y ** 2)
+def teledirigir_balas(bala, num):
+    if not pausa:
+        global tele_x, tele_y, hipo, mov_x, mov_y
+        tele_x = atacante.x - bala.x
+        tele_y = atacante.y - bala.y
+        hipo = math.sqrt(tele_x ** 2 + tele_y ** 2)
 
-    if hipo != 0:
-        mov_x = tele_x / hipo
-        mov_y = tele_y / hipo
-    
-    bala.x += 6 * mov_x
-    bala.y += 6 * mov_y
+        if hipo != 0:
+            mov_x = tele_x * num / hipo
+            mov_y = tele_y * num / hipo
+        
+        bala.x +=  mov_x
+        bala.y +=  mov_y
+        if build == 3:
+            angulo = math.degrees(math.atan2(-tele_y, tele_x))
+            if mov_x != 0:
+                bala.angle = angulo-90
+            elif tele_x == 0 and tele_y < 0:
+                bala.angle = 0
+            else:
+                bala.angle = 180
+
+def balas_dispersadas(cordi):
+    if not pausa:
+        for angulo in range(70, 111, 10):
+            if angulo == 70 or angulo == 110:
+                atomo = Actor('proton', cordi)
+            elif angulo == 80 or angulo == 100:
+                atomo = Actor('neutron.png', cordi)
+            elif angulo == 90:
+                atomo = Actor('electron', cordi)
+            dispersion_x = math.cos(math.radians(angulo))
+            dispersion_y = math.sin(math.radians(angulo))
+            cord = (dispersion_x, dispersion_y)
+            tup = (atomo, cord)
+            dispersados.append(tup)
+
+def misil(poder):
+    misilazo = Actor('misil', (jugador.x, jugador.y-9))
+    duo = (misilazo, poder)
+    misil_lanzamiento.play()
+    misiles.append(duo)    
 
 pgzrun.go()
