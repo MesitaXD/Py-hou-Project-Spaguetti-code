@@ -14,8 +14,6 @@ def crear_build(text):
         nueva_build = 2
     else:
         nueva_build = 3
-    label.config(text=str(nueva_build))
-def cerrar_ventana():
     mensaje.destroy()
 
 
@@ -29,15 +27,9 @@ boton1 = tk.Button(mensaje, text="BUILD 1", command=lambda: crear_build("1"), **
 boton2 = tk.Button(mensaje, text="BUILD 2", command=lambda: crear_build("2"), **boton_estilo, bg="#00A2E8", activebackground="#005D85", activeforeground="White")
 boton3 = tk.Button(mensaje, text="BUILD 3", command=lambda: crear_build("3"), **boton_estilo, bg="#22B14C", activebackground="#125C27", activeforeground="White")
 
-boton1.grid(row=1, column=0, padx=10, pady=5)
+boton1.grid(row=1, column=1, padx=10, pady=5)
 boton2.grid(row=2, column=0, padx=10, pady=5)
-boton3.grid(row=3, column=0, padx=10, pady=5)
-
-cerrar = tk.Button(mensaje, text="Escojer", command=cerrar_ventana, **boton_estilo, bg="#6764B1", activebackground="#37355E", activeforeground="White")
-cerrar.grid(row=3, column=1, padx=16, pady=5)
-
-label = tk.Label(mensaje, text=str(nueva_build), font=("Arial", 18), bg="#f0f0f0")
-label.grid(row=2, column=1, padx=20, pady=5)
+boton3.grid(row=3, column=1, padx=10, pady=5)
 
 mensaje.mainloop()
 
