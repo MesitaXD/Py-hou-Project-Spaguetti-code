@@ -1,4 +1,46 @@
 import os
+import tkinter as tk
+from tkinter import messagebox as mensaje
+mensaje = tk.Tk()
+mensaje.title("Build")
+mensaje.geometry("200x130+560+240")
+mensaje.configure(bg="#f0f0f0") 
+nueva_build = 1
+def crear_build(text):
+    global nueva_build
+    if text == "1":
+        nueva_build = 1
+    elif text == "2":
+        nueva_build = 2
+    else:
+        nueva_build = 3
+    label.config(text=str(nueva_build))
+def cerrar_ventana():
+    mensaje.destroy()
+
+
+boton_estilo = {
+    "font": ("Times News Roman", 12),  
+    "fg": "white",    
+    "relief": "raised",
+}
+
+boton1 = tk.Button(mensaje, text="BUILD 1", command=lambda: crear_build("1"), **boton_estilo, bg="#FF0000", activebackground="#550000", activeforeground="White")
+boton2 = tk.Button(mensaje, text="BUILD 2", command=lambda: crear_build("2"), **boton_estilo, bg="#00A2E8", activebackground="#005D85", activeforeground="White")
+boton3 = tk.Button(mensaje, text="BUILD 3", command=lambda: crear_build("3"), **boton_estilo, bg="#22B14C", activebackground="#125C27", activeforeground="White")
+
+boton1.grid(row=1, column=0, padx=10, pady=5)
+boton2.grid(row=2, column=0, padx=10, pady=5)
+boton3.grid(row=3, column=0, padx=10, pady=5)
+
+cerrar = tk.Button(mensaje, text="Escojer", command=cerrar_ventana, **boton_estilo, bg="#6764B1", activebackground="#37355E", activeforeground="White")
+cerrar.grid(row=3, column=1, padx=16, pady=5)
+
+label = tk.Label(mensaje, text=str(nueva_build), font=("Arial", 18), bg="#f0f0f0")
+label.grid(row=2, column=1, padx=20, pady=5)
+
+mensaje.mainloop()
+
 os.environ['SDL_VIDEO_WINDOW_POS'] = '460,140'
 import pygame
 import pgzrun
@@ -10,7 +52,7 @@ HEIGHT = 600
 activa = False
 focus = False
 primera_vez = 0
-build = 2
+build = 0
 bomba_y_vida = False
 tiempo_inicial_tecla = 0
 eee = True
@@ -196,10 +238,11 @@ def draw():
 
 
 def update():
-    global numero_bombas, ultima_vez, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
-
+    if build != nueva_build:
+        build = nueva_build
 
     direccion = ""
     if (keyboard.up):
@@ -385,7 +428,7 @@ def update():
                 numero_de_bombas = 2
                 espera_bala = 7
                 velocidad_balas = 10
-                for x in range(0, 61, 30):
+                for x in range(0, 31, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
                 for x_2 in range(0, 26, 25):
