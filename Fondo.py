@@ -81,6 +81,8 @@ jugador = Actor('jugador.jpg', (200, 530))
 hitbox = Actor('hitbox.png', (200, 530))
 gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
 menu_pausa = Actor('pausa.png', (-163, 300))
+vel_build = 0
+shift_build = 0
 lista_graciados = []
 contador = 0
 contador_extra = 0
@@ -238,7 +240,7 @@ def draw():
 
 
 def update():
-    global numero_bombas, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
@@ -247,16 +249,16 @@ def update():
     direccion = ""
     if (keyboard.up):
         direccion = 'up'
-        mover_jugador(direccion)
+        mover_jugador(direccion, vel_build, shift_build)
     if (keyboard.down):
         direccion = 'down'
-        mover_jugador(direccion)
+        mover_jugador(direccion, vel_build, shift_build)
     if (keyboard.left) :
         direccion = 'left'
-        mover_jugador(direccion)
+        mover_jugador(direccion, vel_build, shift_build)
     if (keyboard.right) :
         direccion = 'right'
-        mover_jugador(direccion)
+        mover_jugador(direccion, vel_build, shift_build)
     if keyboard.q:
         spawn_enemigos(True)
 
@@ -428,6 +430,8 @@ def update():
                 numero_de_bombas = 2
                 espera_bala = 7
                 velocidad_balas = 10
+                vel_build = 4
+                shift_build = 2
                 for x in range(0, 31, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -443,6 +447,8 @@ def update():
                 espera_bala = 8
                 espera_extra = 32
                 velocidad_balas = 15
+                vel_build = 5
+                shift_build = 3
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -458,6 +464,8 @@ def update():
                 espera_bala = 15
                 velocidad_balas = 5
                 poder_bala = 0
+                vel_build = 3
+                shift_build = 5 
                 for x in range(0, 181, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
@@ -659,10 +667,10 @@ def update():
     else:
         pygame.mixer.unpause()
 
-def mover_jugador(direccion, distancia = 4):
+def mover_jugador(direccion, distancia, shift):
     if not pausa:
         if (keyboard.lshift):
-            distancia = 1.7
+            distancia = shift
         if (direccion == 'up'):
             jugador.y -= distancia
             hitbox.y -= distancia
