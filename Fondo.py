@@ -543,6 +543,7 @@ def update():
                 daño += 10
             elif misi[1] == 3:
                 daño += 20
+            puntuacion += 100
             misil_explosion.play()
             misiles.remove(misi)
 
@@ -580,6 +581,7 @@ def update():
             mini[0].y -= 6 * mini[1][1]
             if mini[0].colliderect(atacante):
                 daño += 0.3
+                puntuacion += 5
                 dispersados.remove(mini)
             if not mini[0].colliderect(rango_visible):
                 dispersados.remove(mini)
@@ -732,11 +734,12 @@ def disparo(disparo):
                         contador = 0
                         bala = Actor('gota', (jugador.x, jugador.y -9))
                         balas.append(bala)
-                        puntuacion += 15
+                        puntuacion += 10
                         bala_2_sfx.play(1)
                     if contador_extra >= espera_extra/poder_bala:
                         contador_extra = 0
                         bala_2_extra_sfx.play()
+                        puntuacion += 5
                         teledirigido = Actor('auto_bubble',(jugador.x + 15, jugador.y - 9))
                         teledirigido_2 = Actor('auto_bubble',(jugador.x - 15, jugador.y - 9))
                         teledirigidas.append(teledirigido)
@@ -748,6 +751,7 @@ def disparo(disparo):
                     big_b_sfx.play()
                     big_b = Actor('big_b', (jugador.x , jugador.y))
                     teledirigido_ex.append(big_b)
+                    puntuacion += 20
     elif build == 3:
         if not pausa:
             if focus == False:
@@ -757,6 +761,7 @@ def disparo(disparo):
                         contador = 0
                         atomo = Actor('atom', (jugador.x, jugador.y -9))
                         balas.append(atomo)
+                        puntuacion += 15
                         bala_3_sfx.play()
 
 
@@ -853,7 +858,7 @@ def daño_golpe_cambio(entero: int):
 
 def bomba_explosion(Comprobante):
     if not pausa:
-        global activa, bomba_activada, contador_explosion, puntuacion
+        global activa, bomba_activada, contador_explosion, puntuacion, daño
         if Comprobante == True:
             for bala in bala_circular:
                 bala_circular.remove(bala)
@@ -864,6 +869,7 @@ def bomba_explosion(Comprobante):
             if contador_explosion == 0:
                 explosion_bomba_sfx.play()
             contador_explosion += 1
+            daño += 4/3
             if contador_explosion == 60:
                 bomba_activada = True
                 if not len(numero_vidas) == 0:
@@ -935,7 +941,7 @@ def movimiento_avanzado(Tru):
                         validacion_2 = True
     
 def cambio_bala(sdas):
-    global poder_bala, contador_cambio_bala, contador_extra
+    global poder_bala, contador_cambio_bala, contador_extra, puntuacion
     if build == 1:
         if not pausa:
             if sdas:
@@ -978,6 +984,7 @@ def cambio_bala(sdas):
                 else:
                     if poder_bala > 0:
                         misil(poder_bala)
+                    puntuacion += 20*poder_bala
                     poder_bala = 0
                     contador_cambio_bala = 0
 
