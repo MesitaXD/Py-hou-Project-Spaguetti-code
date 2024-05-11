@@ -16,7 +16,6 @@ def crear_build(text):
         nueva_build = 3
     mensaje.destroy()
 
-
 boton_estilo = {
     "font": ("Times News Roman", 12),  
     "fg": "white",    
@@ -104,7 +103,7 @@ aleatorio = 0
 contador_enemigo_2 = 0
 contador_enemigo_3 = 0
 numero_2 = 0
-vida_max = 320
+vida_max = 320 #320
 numero_vidas = []
 numero_bombas = []
 vida_verde =  Rect((65, 20), (vida_max, 10))
@@ -141,6 +140,8 @@ misil_explosion.set_volume(0.6)
 advertencia_bomba = sounds.load("nuclear_alert.mp3")
 advertencia_bomba.set_volume(0.8)
 explosion_bomba_sfx = sounds.load("explosion_bomba.wav")
+ran_ran_ru_sfx = sounds.load("ran_ran_ru.mp3")
+ran_ran_ru_sfx.set_volume(0.7)
 giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
@@ -166,7 +167,13 @@ dispersion = []
 dispersados = []
 misiles = []
 ultima_vez = 0
+contador_ranranru = 0
 reloj = pygame.time.Clock()
+ran_ran_ru_inicio = []
+nat = 3
+ran_bala = []
+ran_balas_grupo_1 = []
+ran_balas_grupo_2 = []
 
 
 def draw():
@@ -176,6 +183,12 @@ def draw():
 
     for cosa in circulos_wa:
         cosa[0].draw()
+
+    for ran in ran_ran_ru_inicio:
+        ran[0].draw()
+    for ran in ran_bala:
+        if ran[0].colliderect(rango_visible):
+            ran[0].draw()  
 
     if bomba_print:
         if build == 1:
@@ -229,7 +242,7 @@ def draw():
         carga_3.draw()
     reloj.tick()
     screen.draw.text(str(round(reloj.get_fps(), 1)), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-60))
-
+    screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
 
 def update():
     global numero_bombas, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
@@ -562,10 +575,9 @@ def update():
         bala_circulos("si")
         bala_spin(True)
         movimiento_avanzado(True)
-
     if vida_max <= 70:
         daño_golpe_cambio(25)
-        movimiento_avanzado(True)
+        ran_ran_ru(True, 120)
 
     for mini in dispersados:
         if not pausa:
@@ -636,7 +648,86 @@ def update():
                 if coso in circulos_wa:
                     circulos_wa.remove(coso)
                     puntuacion += 30
-    
+
+    for ran in ran_ran_ru_inicio:
+        if not pausa:
+            global nat
+            nat = 3
+            if ran[1] == 1:  
+                y = ran[0].y          
+                ran[2] -= 0.1
+                ran[0].x += ran[2]
+                if ran[0].x < 20 and ran[2] < 0:
+                    ran_ran_ru_inicio.remove(ran)
+                    ran_exposure(20, y, ran[1])
+            elif ran[1] == 2:
+                y = ran[0].y          
+                ran[2] -= 0.1
+                ran[0].x -= ran[2]
+                if ran[0].x > 389 and ran[2] < 0:
+                    ran_ran_ru_inicio.remove(ran)
+                    ran_exposure(389, y, ran[1])
+
+            elif ran[1] == 3:
+                x = ran[0].x
+                ran[2] -= 0.1
+                ran[0].y += ran[2]
+                if ran[0].y < 14 and ran[2] < 0:
+                    ran_ran_ru_inicio.remove(ran)
+                    ran_exposure(x, 14, ran[1])
+            else:
+                x = ran[0].x
+                ran[2] -= 0.1
+                ran[0].y -= ran[2]
+                if ran[0].y > 586 and ran[2] < 0:
+                    ran_ran_ru_inicio.remove(ran)
+                    ran_exposure(x, 586, ran[1])
+                    
+    for ran in ran_bala:
+        if not pausa:
+            for ran_2 in ran_bala:
+                if ran[0].colliderect(ran_2[0]):
+                    if ran != ran_2:
+                        if ran[3] != 0 and ran_2[3] != 0:
+                            if ran[2] in (1, 2):
+                                ran[1][1] = 0
+                                ran_2[1][1] = 0
+                            else:
+                                ran[1][0] = 0
+                                ran_2[1][0] = 0
+            if ran[3] == 1:
+                ran_balas_grupo_1.append(ran)
+            elif ran[3] == 2:
+                ran_balas_grupo_2.append(ran)
+
+            if ran[2] in (1 ,2):
+                ran[0].x += ran[1][0] * 6
+                ran[0].y += ran[1][1] * 3
+            else:
+                ran[0].x += ran[1][0] * 4
+                ran[0].y += ran[1][1] * 8
+
+            if ran[2] == 2:
+                if ran[0].x < 20: 
+                    if ran in ran_bala:
+                        ran_bala.remove(ran)
+            if ran[2] == 1:
+                if ran[0].x > 389: 
+                    if ran in ran_bala:
+                        ran_bala.remove(ran)
+            if ran[2] == 4:
+                if ran[0].y < 9: 
+                    if ran in ran_bala:
+                        ran_bala.remove(ran)
+            if ran[2] == 3:
+                if ran[0].y > 591:
+                    if ran in ran_bala:
+                        ran_bala.remove(ran)
+
+#    izquierda = (33, (27, 573))
+#    derecha = (377, (27, 573))
+#    arriba = ((33, 377), 27)
+#    abajo = ((33, 377), 573)
     for bala in circulos_wa or bala_circular:
         if bala[0].colliderect(gracia):
             if not bala[0] in lista_graciados:
@@ -677,7 +768,6 @@ def mover_jugador(direccion, distancia, shift):
         if (direccion == 'left'):
             jugador.x -= distancia
             hitbox.x -= distancia
-
     if (jugador.y <= 26):
         jugador.y = 26
         hitbox.y = 26
@@ -1022,5 +1112,156 @@ def misil(poder):
     duo = (misilazo, poder)
     misil_lanzamiento.play()
     misiles.append(duo)    
+
+def ran_ran_ru(Comprobante, valor):
+    global contador_ranranru
+    if not pausa:
+        if Comprobante:
+            contador_ranranru += 1 
+            if contador_ranranru >= valor:
+                contador_ranranru = 0
+                numero = randint(1, 4)
+                if numero == 1:
+                    y = randint(67, 533)
+                    x = 33
+                elif numero == 2:
+                    y = randint(67, 533)
+                    x = 377
+                elif numero == 3:
+                    x = randint(73, 297)
+                    y = 27
+                else:
+                    x = randint(73, 297)
+                    y = 573
+                balas = Actor("bala.png", (x, y))
+                velo = 3
+                todo = [balas, numero, velo]
+                ran_ran_ru_inicio.append(todo)
+                
+def ran_exposure(x, y, direccion):
+    if not pausa:
+        if direccion == 1: #Izquierda
+            ran_ran_ru_sfx.play()
+            for _ in range(141):
+                if _ in (5, 15, 20, 25, 35, 40):
+                    balas_ran1 = Actor("bala.png", (x-_*5, y - 6*_))
+                    balas_ran2 = Actor("bala.png", (x-_*5, y + 6*_))
+                    vel = (1 , 1.1)
+                    vel2 = (1 , -1.1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (50, 55, 65, 70, 80):
+                    balas_ran1 = Actor("bala.png", (x-_*5, y - 3*_))
+                    balas_ran2 = Actor("bala.png", (x-_*5, y + 3*_))
+                    vel = [1 , 0.7]
+                    vel2 = [1 , -0.7]
+                    trio_1 = [balas_ran1, vel, direccion, 1]
+                    trio_2 = [balas_ran2, vel2, direccion, 2]
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (90, 95, 105, 110, 120, 125, 135, 140):
+                    balas_ran1 = Actor("bala.png", (x-_*5, y - 40))
+                    balas_ran2 = Actor("bala.png", (x-_*5, y + 40))
+                    vel = (1 , 0)
+                    vel2 = (1 , 0)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+
+        elif direccion == 2: #Derecha
+            ran_ran_ru_sfx.play()
+            for _ in range(141):
+                if _ in (5, 15, 20, 25, 35, 40):
+                    balas_ran1 = Actor("bala.png", (x+_*5, y - 6*_))
+                    balas_ran2 = Actor("bala.png", (x+_*5, y +6*_))
+                    vel = (-1 , 1.1)
+                    vel2 = (-1 , -1.1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (50, 55, 65, 70, 80):
+                    balas_ran1 = Actor("bala.png", (x+_*5, y - 3*_))
+                    balas_ran2 = Actor("bala.png", (x+_*5, y + 3*_))
+                    vel = [-1 , 0.7]
+                    vel2 = [-1 , -0.7]
+                    trio_1 = [balas_ran1, vel, direccion, 1]
+                    trio_2 = [balas_ran2, vel2, direccion, 2]
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (90, 95, 105, 110, 120, 125, 135, 140):
+                    balas_ran1 = Actor("bala.png", (x+_*5, y - 40))
+                    balas_ran2 = Actor("bala.png", (x+_*5, y + 40))
+                    vel = (-1 , 0)
+                    vel2 = (-1 , 0)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                
+        elif direccion == 3: #Arriba
+            ran_ran_ru_sfx.play()
+            for _ in range(141):
+                if _ in (5, 15, 20, 25, 35, 40):
+                    balas_ran1 = Actor("bala.png", (x + 6 * _, y - _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 6 * _, y - _ * 5))
+                    vel = (-1.1 , 1)
+                    vel2 = (1.1, 1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (50, 55, 65, 70, 80):
+                    balas_ran1 = Actor("bala.png", (x + 3 * _, y - _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 3 * _, y - _ * 5))
+                    vel = [-0.7 , 1]
+                    vel2 = [0.7 , 1]
+                    trio_1 = [balas_ran1, vel, direccion, 1]
+                    trio_2 = [balas_ran2, vel2, direccion, 2]
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (90, 95, 105, 110, 120, 125, 135, 140):
+                    balas_ran1 = Actor("bala.png", (x + 40, y - _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 40, y - _ * 5))
+                    vel = (0 , 1)
+                    vel2 = (0 , 1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+
+        else: #Abajo
+            ran_ran_ru_sfx.play()
+            for _ in range(141):
+                if _ in (5, 15, 20, 25, 35, 40):
+                    balas_ran1 = Actor("bala.png", (x + 6 * _, y + _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 6 * _, y + _ * 5))
+                    vel = (-1.1 , -1)
+                    vel2 = (1.1, -1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (50, 55, 65, 70, 80):
+                    balas_ran1 = Actor("bala.png", (x + 3 * _, y + _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 3 * _, y + _ * 5))
+                    vel = [-0.7 , -1]
+                    vel2 = [0.7 , -1]
+                    trio_1 = [balas_ran1, vel, direccion, 1]
+                    trio_2 = [balas_ran2, vel2, direccion, 2]
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
+                if _ in (90, 95, 105, 110, 120, 125, 135, 140):
+                    balas_ran1 = Actor("bala.png", (x + 40, y + _ * 5))
+                    balas_ran2 = Actor("bala.png", (x - 40, y + _ * 5))
+                    vel = (0 , -1)
+                    vel2 = (0 , -1)
+                    trio_1 = (balas_ran1, vel, direccion, 0)
+                    trio_2 = (balas_ran2, vel2, direccion, 0)
+                    ran_bala.append(trio_1)
+                    ran_bala.append(trio_2)
 
 pgzrun.go()
