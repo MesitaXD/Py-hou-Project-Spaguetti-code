@@ -103,7 +103,7 @@ aleatorio = 0
 contador_enemigo_2 = 0
 contador_enemigo_3 = 0
 numero_2 = 0
-vida_max = 20 #320
+vida_max = 320 #320
 numero_vidas = []
 numero_bombas = []
 vida_verde =  Rect((65, 20), (vida_max, 10))
@@ -142,6 +142,8 @@ advertencia_bomba.set_volume(0.8)
 explosion_bomba_sfx = sounds.load("explosion_bomba.wav")
 ran_ran_ru_sfx = sounds.load("ran_ran_ru.mp3")
 ran_ran_ru_sfx.set_volume(0.7)
+lluvia_sfx = sounds.load("rain.mp3")
+lluvia_sfx.set_volume(1)
 giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
@@ -179,6 +181,9 @@ ald_bala = []
 ron_contador = 0
 ald_contador = 0
 todas_las_balas_enemigas = [bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio]
+rain = False
+contador_lluvia = 0
+lluvia = []
 
 def draw():
     rango_visible.draw()
@@ -206,7 +211,8 @@ def draw():
                 burbuja[0].draw()
         if build == 3:
             bomba_3.draw()
-            
+    for gota in lluvia:
+        gota[0].draw()
     if focus == True:
         gracia.draw()
         jugador.draw()
@@ -253,7 +259,7 @@ def draw():
     screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
 
 def update():
-    global numero_bombas, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, contador_lluvia, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
@@ -332,7 +338,7 @@ def update():
         primera_vez_rotacion = 0
         giro_cooldown_sfx = 0
         
-    if bubble == True:
+    if bubble:
         bomba_print = True
         if not pausa:
             if primera_vez == 0:
@@ -346,8 +352,39 @@ def update():
                 bomba_2.append(b2)
                 primera_vez = 1
     else: 
+        bomba_2.clear()
         primera_vez = 0
-    
+
+    if rain:
+        bomba_print = True
+        focus = True
+        if not pausa:
+            if contador_lluvia == 0:
+                lluvia_sfx.play()
+            contador_lluvia += 1
+            if contador_lluvia % 2 == 0:
+                y = math.sin(math.radians(260))
+                x = math.cos(math.radians(260))
+                gota = Actor('gota_grande', (randint(31, 429) ,14))
+                mov = (x, y)
+                duo = (gota, mov)
+                lluvia.append(duo)
+    else:
+        contador_lluvia = 0
+
+
+    for gota in lluvia:
+        if not pausa:
+            gota[0].angle = 260
+            gota[0].x += 33 * gota[1][0]
+            gota[0].y -= 33 * gota[1][1]
+            if gota[0].x < 28:
+                lluvia.remove(gota)
+            if gota[0].x > 584:
+                lluvia.remove(gota)
+            if gota[0].colliderect(atacante):
+                daño += 0.5
+
     if nuclear == True:
         bomba_print = True
         if not pausa:
@@ -418,19 +455,22 @@ def update():
     else:
         escape_cooldown = False
         
-    if activa == True:
+    if activa:
         if not pausa:
             espera_nojoda += 1
             if build == 1:
                 espera = 300
             if build == 2:
-                espera = 600
+                if focus:
+                    espera = 300
+                    print(espera)
+                else:
+                    espera = 600
             if build == 3:
                 espera = 600
-
             if espera_nojoda <= espera:
                 bomba_cd = True
-                bomba(True)
+                bomba(True) 
             else:
                 bomba_cd = False
                 activa = False 
@@ -494,14 +534,21 @@ def update():
                     if not len(numero_vidas) == 0:
                         invencibilidad = True
                     else:
-                        sys.exit()
+                        sys.exit()  
             for burbuja in bomba_2:
                 if burbuja[0].colliderect(coso[0]):
                     if coso in listas:
                         listas.remove(coso)
+
             if bomba_1.colliderect(coso[0]):
                 if coso in listas:
                     listas.remove(coso)
+                    
+            for gota in lluvia:
+                if gota[0].colliderect(coso[0]):
+                    if coso in listas:
+                        listas.remove(coso)
+            
 
                 
     if invencibilidad == True:
@@ -724,11 +771,12 @@ def update():
                     if ran in ran_bala:
                         ran_bala.remove(ran)
 
-    for bala in circulos_wa or bala_circular:
-        if bala[0].colliderect(gracia):
-            if not bala[0] in lista_graciados:
-                lista_graciados.append(bala[0])
-                gracia_numero += 1
+    for lista in todas_las_balas_enemigas:
+        for bala in lista:
+            if bala[0].colliderect(gracia):
+                if bala not in lista_graciados:
+                    lista_graciados.append(bala)
+                    gracia_numero += 1
 
     if pausa:
         if  rebote_pausa < 3:
@@ -766,7 +814,7 @@ def update():
             
 def mover_jugador(direccion, distancia, shift):
     if not pausa:
-        if (keyboard.lshift):
+        if focus:
             distancia = shift
         if (direccion == 'up'):
             jugador.y -= distancia
@@ -927,19 +975,22 @@ def bala_circulos(e):
                     circulos_wa.append(todo)
 
 def bomba(a):
-    global rotation, bubble, nuclear
+    global rotation, bubble, rain, nuclear
     if not pausa:
         if build == 1:
             if a == True:
-                if not len(numero_bombas) < 0:
-                    rotation = True
+                rotation = True
             else:
                 rotation = False
         elif build == 2:
             if a == True:
-                bubble = True
+                if focus and not bubble:
+                    rain = True
+                elif not rain:
+                    bubble = True
             else:
                 bubble = False
+                rain = False
         elif build == 3:
             if a == True:
                 nuclear = True
@@ -1140,7 +1191,7 @@ def ran_ran_ru(Comprobante, valor):
                 else:
                     x = randint(73, 297)
                     y = 573
-                balas = Actor("mc.png", (x, y))
+                balas = Actor("mc_bala", (x, y))
                 velo = 3
                 todo = [balas, numero, velo]
                 ran_ran_ru_inicio.append(todo)
@@ -1151,8 +1202,8 @@ def ran_exposure(x, y, direccion):
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
-                    balas_ran1 = Actor("mc.png", (x-_*5, y - 6*_))
-                    balas_ran2 = Actor("mc.png", (x-_*5, y + 6*_))
+                    balas_ran1 = Actor("mc_bala", (x-_*5, y - 6*_))
+                    balas_ran2 = Actor("mc_bala", (x-_*5, y + 6*_))
                     vel = (1 , 1.1)
                     vel2 = (1 , -1.1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1160,8 +1211,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (50, 55, 65, 70, 80):
-                    balas_ran1 = Actor("mc.png", (x-_*5, y - 3*_))
-                    balas_ran2 = Actor("mc.png", (x-_*5, y + 3*_))
+                    balas_ran1 = Actor("mc_bala", (x-_*5, y - 3*_))
+                    balas_ran2 = Actor("mc_bala", (x-_*5, y + 3*_))
                     vel = [1 , 0.7]
                     vel2 = [1 , -0.7]
                     trio_1 = [balas_ran1, vel, direccion, 1]
@@ -1169,8 +1220,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (90, 95, 105, 110, 120, 125, 135, 140):
-                    balas_ran1 = Actor("mc.png", (x-_*5, y - 40))
-                    balas_ran2 = Actor("mc.png", (x-_*5, y + 40))
+                    balas_ran1 = Actor("mc_bala", (x-_*5, y - 40))
+                    balas_ran2 = Actor("mc_bala", (x-_*5, y + 40))
                     vel = (1 , 0)
                     vel2 = (1 , 0)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1182,8 +1233,8 @@ def ran_exposure(x, y, direccion):
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
-                    balas_ran1 = Actor("mc.png", (x+_*5, y - 6*_))
-                    balas_ran2 = Actor("mc.png", (x+_*5, y +6*_))
+                    balas_ran1 = Actor("mc_bala", (x+_*5, y - 6*_))
+                    balas_ran2 = Actor("mc_bala", (x+_*5, y +6*_))
                     vel = (-1 , 1.1)
                     vel2 = (-1 , -1.1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1191,8 +1242,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (50, 55, 65, 70, 80):
-                    balas_ran1 = Actor("mc.png", (x+_*5, y - 3*_))
-                    balas_ran2 = Actor("mc.png", (x+_*5, y + 3*_))
+                    balas_ran1 = Actor("mc_bala", (x+_*5, y - 3*_))
+                    balas_ran2 = Actor("mc_bala", (x+_*5, y + 3*_))
                     vel = [-1 , 0.7]
                     vel2 = [-1 , -0.7]
                     trio_1 = [balas_ran1, vel, direccion, 1]
@@ -1200,8 +1251,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (90, 95, 105, 110, 120, 125, 135, 140):
-                    balas_ran1 = Actor("mc.png", (x+_*5, y - 40))
-                    balas_ran2 = Actor("mc.png", (x+_*5, y + 40))
+                    balas_ran1 = Actor("mc_bala", (x+_*5, y - 40))
+                    balas_ran2 = Actor("mc_bala", (x+_*5, y + 40))
                     vel = (-1 , 0)
                     vel2 = (-1 , 0)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1213,8 +1264,8 @@ def ran_exposure(x, y, direccion):
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
-                    balas_ran1 = Actor("mc.png", (x + 6 * _, y - _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 6 * _, y - _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 6 * _, y - _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 6 * _, y - _ * 5))
                     vel = (-1.1 , 1)
                     vel2 = (1.1, 1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1222,8 +1273,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (50, 55, 65, 70, 80):
-                    balas_ran1 = Actor("mc.png", (x + 3 * _, y - _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 3 * _, y - _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 3 * _, y - _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 3 * _, y - _ * 5))
                     vel = [-0.7 , 1]
                     vel2 = [0.7 , 1]
                     trio_1 = [balas_ran1, vel, direccion, 1]
@@ -1231,8 +1282,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (90, 95, 105, 110, 120, 125, 135, 140):
-                    balas_ran1 = Actor("mc.png", (x + 40, y - _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 40, y - _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 40, y - _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 40, y - _ * 5))
                     vel = (0 , 1)
                     vel2 = (0 , 1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1244,8 +1295,8 @@ def ran_exposure(x, y, direccion):
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
-                    balas_ran1 = Actor("mc.png", (x + 6 * _, y + _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 6 * _, y + _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 6 * _, y + _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 6 * _, y + _ * 5))
                     vel = (-1.1 , -1)
                     vel2 = (1.1, -1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
@@ -1253,8 +1304,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (50, 55, 65, 70, 80):
-                    balas_ran1 = Actor("mc.png", (x + 3 * _, y + _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 3 * _, y + _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 3 * _, y + _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 3 * _, y + _ * 5))
                     vel = [-0.7 , -1]
                     vel2 = [0.7 , -1]
                     trio_1 = [balas_ran1, vel, direccion, 1]
@@ -1262,8 +1313,8 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 if _ in (90, 95, 105, 110, 120, 125, 135, 140):
-                    balas_ran1 = Actor("mc.png", (x + 40, y + _ * 5))
-                    balas_ran2 = Actor("mc.png", (x - 40, y + _ * 5))
+                    balas_ran1 = Actor("mc_bala", (x + 40, y + _ * 5))
+                    balas_ran2 = Actor("mc_bala", (x - 40, y + _ * 5))
                     vel = (0 , -1)
                     vel2 = (0 , -1)
                     trio_1 = (balas_ran1, vel, direccion, 0)
