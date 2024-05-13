@@ -189,6 +189,10 @@ lluvia = []
 bombardeo = False
 contador_bombardeo = 0
 misil_bombardeo = []
+super_knifes = False
+cuchillos = []
+knife_contador = 0
+animacion_cuchillo = 0
 def draw():
     rango_visible.draw()
     for cosa in bala_circular:
@@ -215,6 +219,8 @@ def draw():
                 burbuja[0].draw()
         if build == 3:
             bomba_3.draw()
+    for cuchillo in cuchillos:
+        cuchillo.draw()
     for gota in lluvia:
         gota[0].draw()
     for misil in misil_bombardeo:
@@ -266,7 +272,7 @@ def draw():
     screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
 
 def update():
-    global numero_bombas, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, knife_contador, animacion_cuchillo, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
@@ -295,16 +301,16 @@ def update():
         cambio_bala(False)
 
     if (keyboard.e):
-        bala_circulos("si")
+        bala_circulos(True)
     else:
-        bala_circulos("no")
+        bala_circulos(False)
     if not pausa:
         if (keyboard.lshift):
             focus = True
         else:
             focus = False
         
-    if rotation == True:
+    if rotation:
         bomba_print = True
         if not pausa:
             numero = 0
@@ -344,7 +350,31 @@ def update():
         bomba_print = False
         primera_vez_rotacion = 0
         giro_cooldown_sfx = 0
-        
+    
+    if super_knifes:
+        if not pausa:
+            focus = True
+            if knife_contador == 0 or knife_contador % 10 == 0:
+                for multi in range(1,6):
+                    x = (multi-3)*20 + jugador.x
+                    cuchillo = Actor('knife_0', (x , jugador.y-5))
+                    cuchillos.append(cuchillo)
+            knife_contador += 1
+    else:
+        knife_contador = 0
+    animacion_cuchillo += 1
+    if animacion_cuchillo > 3 * 5:
+        animacion_cuchillo = 0
+
+    for cuchillo in cuchillos:
+        if not pausa:
+            cuchillo.image = "knife_"+str(math.floor(animacion_cuchillo/5))
+            cuchillo.y -= 10
+            if cuchillo.y < 10:
+                cuchillos.remove(cuchillo)
+            if cuchillo.colliderect(atacante):
+                cuchillos.remove(cuchillo)
+                daño += 0.75
     if bubble:
         bomba_print = True
         if not pausa:
@@ -599,7 +629,10 @@ def update():
             if bomba_1.colliderect(coso[0]):
                 if coso in listas:
                     listas.remove(coso)
-                    
+            for cuchillo in cuchillos:
+                if cuchillo.colliderect(coso[0]):
+                    if coso in listas:
+                        listas.remove(coso)
             for gota in lluvia:
                 if gota[0].colliderect(coso[0]):
                     if coso in listas:
@@ -904,8 +937,8 @@ def disparo(disparo):
     global contador, contador_extra, poder_bala, puntuacion, espera_bala, espera_extra
     if build == 1:
         if not pausa:
-            if focus == False:
-                if disparo == True:
+            if not focus:
+                if disparo:
                     contador += 1
                     if contador == espera_bala:
                         contador = 0
@@ -914,7 +947,7 @@ def disparo(disparo):
                         puntuacion += 5
                         bala_1_sfx.play()
             else:
-                if disparo == True:
+                if disparo:
                     contador += 1
                     if contador == espera_bala:
                         contador = 0
@@ -928,8 +961,8 @@ def disparo(disparo):
                         bala_1_sfx.play()
     elif build == 2:
         if not pausa:
-            if focus == False:
-                if disparo == True:
+            if not focus:
+                if disparo:
                     contador += 1
                     contador_extra += 1
                     if contador == espera_bala:
@@ -956,8 +989,8 @@ def disparo(disparo):
                     puntuacion += 20
     elif build == 3:
         if not pausa:
-            if focus == False:
-                if disparo == True:
+            if not focus:
+                if disparo:
                     contador += 1
                     if contador == espera_bala:
                         contador = 0
@@ -970,7 +1003,7 @@ def disparo(disparo):
                 
 def spawn_enemigos(enemigo):
     global contador_enemigo
-    if enemigo == True:
+    if enemigo:
         contador_enemigo += 1
         if contador_enemigo == espera_enemigos - 2:
             contador_enemigo = 0
@@ -999,11 +1032,11 @@ def seno_random(valor):
         x = 0 
     return round(x, 2), round(y, 2)
 
-def bala_spin(a):
+def bala_spin(a):   
     global numero
     global contador_enemigo
     if not pausa:
-        if a == True:
+        if a:
             contador_enemigo += 1
             if contador_enemigo == espera_enemigos - 2:
                 contador_enemigo = 0
@@ -1021,7 +1054,7 @@ def bala_circulos(e):
     global numero_2
     global contador_enemigo_3
     if not pausa:
-        if e == "si":
+        if e:
             contador_enemigo_3 += 1
             if contador_enemigo_3 == 10:
                 contador_enemigo_3 = 0
@@ -1035,13 +1068,17 @@ def bala_circulos(e):
                     circulos_wa.append(todo)
 
 def bomba(a):
-    global rotation, bubble, rain, nuclear, bombardeo
+    global rotation, super_knifes, bubble, rain, nuclear, bombardeo
     if not pausa:
         if build == 1:
             if a == True:
-                rotation = True
+                if focus and not rotation:
+                    super_knifes = True
+                elif not super_knifes:
+                    rotation = True
             else:
                 rotation = False
+                super_knifes = False
         elif build == 2:
             if a == True:
                 if focus and not bubble:
