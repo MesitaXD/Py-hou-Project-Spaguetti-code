@@ -363,7 +363,7 @@ def update():
     else:
         knife_contador = 0
     animacion_cuchillo += 1
-    if animacion_cuchillo > 3 * 5:
+    if animacion_cuchillo >= 4 * 5:
         animacion_cuchillo = 0
 
     for cuchillo in cuchillos:
