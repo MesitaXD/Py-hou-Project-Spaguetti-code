@@ -11,3 +11,4 @@
 (explosion_bomba) Explode by fejluh -- https://freesound.org/s/718181/ -- License: Creative Commons 0
 (rain) https://www.youtube.com/watch?v=C-hzP3mOBGY
 (fireball) Fireball by qubodup -- https://freesound.org/s/442827/ -- License: Attribution 4.0
+(vine_boom) Vine-boom-sound-effect.mp3 by majetheman -- https://freesound.org/s/588654/ -- License: Creative Commons 0

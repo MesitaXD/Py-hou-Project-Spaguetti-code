@@ -144,6 +144,8 @@ ran_ran_ru_sfx = sounds.load("ran_ran_ru.mp3")
 ran_ran_ru_sfx.set_volume(0.7)
 lluvia_sfx = sounds.load("rain.mp3")
 lluvia_sfx.set_volume(1)
+vine_sfx = sounds.load('vine_boom.mp3')
+vine_sfx.set_volume(0.8)
 giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
@@ -184,7 +186,9 @@ todas_las_balas_enemigas = [bala_circular, circulos_wa, ran_bala, ron_bala, ald_
 rain = False
 contador_lluvia = 0
 lluvia = []
-
+bombardeo = False
+contador_bombardeo = 0
+misil_bombardeo = []
 def draw():
     rango_visible.draw()
     for cosa in bala_circular:
@@ -213,6 +217,9 @@ def draw():
             bomba_3.draw()
     for gota in lluvia:
         gota[0].draw()
+    for misil in misil_bombardeo:
+        misil[0].draw()
+        
     if focus == True:
         gracia.draw()
         jugador.draw()
@@ -259,7 +266,7 @@ def draw():
     screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
 
 def update():
-    global numero_bombas, contador_lluvia, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
@@ -356,7 +363,6 @@ def update():
         primera_vez = 0
 
     if rain:
-        bomba_print = True
         focus = True
         if not pausa:
             if contador_lluvia == 0:
@@ -418,6 +424,53 @@ def update():
         bomba.pos = (1000, 1)
         bomba_activada = False
         contador_explosion = 0
+    if bombardeo:
+        focus = True
+        if not pausa:
+            contador_bombardeo += 1
+            if contador_bombardeo % 10 == 0:
+                if contador_bombardeo in (10, 30, 50):
+                    dire = 1
+                else:
+                    dire = 2
+                vine_sfx.stop()
+                if dire == 1:
+                    angulo = randint(140, 220)
+                    y = math.sin(math.radians(angulo))
+                    x = math.cos(math.radians(angulo))
+                    misil_bomba = Actor('misil', jugador.pos)
+                    mov = (x, y)
+                    duo = [misil_bomba, mov, 0, angulo]
+                    misil_bombardeo.append(duo)
+                else:
+                    angulo = randint(140, 220) + 180
+                    y = math.sin(math.radians(angulo))
+                    x = math.cos(math.radians(angulo))
+                    misil_bomba = Actor('misil', jugador.pos)
+                    mov = (x, y)
+                    duo = [misil_bomba, mov, 0, angulo]
+                    misil_bombardeo.append(duo)
+                vine_sfx.play()
+    else:
+        contador_bombardeo = 0
+
+    for misil in misil_bombardeo:
+        if not pausa:
+            if misil[2] < 31:
+                misil[2] += 1
+            misil[0].angle = misil[3] - 90
+            if 1 <= misil[2] < 30:
+                misil[0].x += 3 * misil[1][0]/(misil[2]/6)
+                misil[0].y -= 3 * misil[1][1]/(misil[2]/6)
+            if misil[2] > 30:
+                teledirigir_balas(misil[0], 5)
+
+            if misil[0].colliderect(atacante):
+                misil_bombardeo.remove(misil)
+                daño += 40/6
+                misil_explosion.play()
+                puntuacion += 10
+        
 
     for burbuja in bomba_2:
         if not pausa:
@@ -461,13 +514,15 @@ def update():
             if build == 1:
                 espera = 300
             if build == 2:
-                if focus:
+                if focus and not bomba_cd:
                     espera = 300
-                    print(espera)
-                else:
+                elif not focus and not bomba_cd:
                     espera = 600
             if build == 3:
-                espera = 600
+                if focus and not bomba_cd:
+                    espera = 60
+                elif not focus and not bomba_cd:
+                    espera = 600
             if espera_nojoda <= espera:
                 bomba_cd = True
                 bomba(True) 
@@ -530,11 +585,12 @@ def update():
     for listas in todas_las_balas_enemigas:
         for coso in listas:
             if invencibilidad == False:
-                if coso[0].colliderect(hitbox):
-                    if not len(numero_vidas) == 0:
-                        invencibilidad = True
-                    else:
-                        sys.exit()  
+                if not bombardeo or lluvia:
+                    if coso[0].colliderect(hitbox):
+                        if not len(numero_vidas) == 0:
+                            invencibilidad = True
+                        else:
+                            sys.exit()  
             for burbuja in bomba_2:
                 if burbuja[0].colliderect(coso[0]):
                     if coso in listas:
@@ -548,8 +604,11 @@ def update():
                 if gota[0].colliderect(coso[0]):
                     if coso in listas:
                         listas.remove(coso)
-            
-
+                        puntuacion += 5
+            for misil in misil_bombardeo:
+                if misil[0].colliderect(coso[0]):
+                    if coso in listas:
+                        listas.remove(coso)
                 
     if invencibilidad == True:
         if not pausa:
@@ -631,6 +690,7 @@ def update():
                 daño += 1.5
                 teledirigido_ex.remove(big_b)
                 puntuacion += 20
+
     if vida_max > 160:
         bala_spin(True)
         movimiento_avanzado(True)
@@ -975,7 +1035,7 @@ def bala_circulos(e):
                     circulos_wa.append(todo)
 
 def bomba(a):
-    global rotation, bubble, rain, nuclear
+    global rotation, bubble, rain, nuclear, bombardeo
     if not pausa:
         if build == 1:
             if a == True:
@@ -993,8 +1053,12 @@ def bomba(a):
                 rain = False
         elif build == 3:
             if a == True:
-                nuclear = True
+                if focus and not nuclear:
+                    bombardeo = True
+                elif not bombardeo:
+                    nuclear = True
             else:
+                bombardeo = False
                 nuclear = False
 
 def daño_golpe_cambio(entero: int):
