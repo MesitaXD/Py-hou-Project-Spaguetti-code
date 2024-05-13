@@ -146,6 +146,8 @@ lluvia_sfx = sounds.load("rain.mp3")
 lluvia_sfx.set_volume(1)
 vine_sfx = sounds.load('vine_boom.mp3')
 vine_sfx.set_volume(0.8)
+fire_knife_sfx = sounds.load("fireball.wav")
+fire_knife_sfx.set_volume(0.8)
 giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
@@ -355,10 +357,12 @@ def update():
         if not pausa:
             focus = True
             if knife_contador == 0 or knife_contador % 10 == 0:
+                fire_knife_sfx.stop()
                 for multi in range(1,6):
                     x = (multi-3)*20 + jugador.x
                     cuchillo = Actor('knife_0', (x , jugador.y-5))
                     cuchillos.append(cuchillo)
+                fire_knife_sfx.play()
             knife_contador += 1
     else:
         knife_contador = 0
