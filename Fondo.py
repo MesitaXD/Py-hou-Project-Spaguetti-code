@@ -232,7 +232,7 @@ def draw():
     for misil in misil_bombardeo:
         misil[0].draw()
         
-    if focus == True:
+    if focus:
         gracia.draw()
         jugador.draw()
         hitbox.draw()
@@ -304,15 +304,14 @@ def update():
         spawn_enemigos(True)
 
     if (keyboard.z):
-        disparo(True)
+        disparo()
         cambio_bala(True)
     else:
         cambio_bala(False)
 
     if (keyboard.e):
-        bala_circulos(True)
-    else:
-        bala_circulos(False)
+        bala_circulos()
+
     if not pausa:
         if (keyboard.lshift):
             focus = True
@@ -452,10 +451,10 @@ def update():
             if gota[0].colliderect(atacante):
                 daño += 0.5
 
-    if nuclear == True:
+    if nuclear:
         bomba_print = True
         if not pausa:
-            if bomba_activada == False:
+            if not bomba_activada:
                 if primera_bomba == 0:
                     advertencia_bomba.play()
                     bomba_3.angle = 0
@@ -476,7 +475,7 @@ def update():
                         bomba_3.angle += 3
 
                 if (bomba_3.y >= 574):
-                    bomba_explosion(True)
+                    bomba_explosion()
                     bomba.pos = (1000, 1)
                     bomba_print = False
     else:
@@ -534,10 +533,8 @@ def update():
                 puntuacion += 10
 
     if keyboard.a:
-        bala_spin(True)
-    else:
-        bala_spin(False)
-
+        bala_spin()
+    
     if keyboard.x:
         if not pausa:
             if not len(numero_bombas) == 0:
@@ -657,7 +654,7 @@ def update():
                     if coso in listas:
                         listas.remove(coso)
                 
-    if invencibilidad == True:
+    if invencibilidad:
         if not pausa:
             numero_pa_eliminar_vida += 1
             if numero_pa_eliminar_vida == 1:
@@ -739,17 +736,19 @@ def update():
                 puntuacion += 20
 
     if vida_max > 160:
-        bala_spin(True)
-        movimiento_avanzado(True)
+        bala_spin()
+        movimiento_avanzado()
     elif 70 < vida_max <=160:
-        bala_circulos("si")
-        bala_spin(True)
-        movimiento_avanzado(True)
+        bala_circulos()
+        bala_spin()
+        movimiento_avanzado()
     elif 0 < vida_max <= 70:
         daño_golpe_cambio(25)
-        ran_ran_ru(True, 180)
-        ron(True)
-        ald(True)
+        ran_ran_ru(180)
+        ron()
+        ald()
+    elif vida_max == 0:
+        limpiar_pantalla()
   
     for mini in dispersados:
         if not pausa:
@@ -947,21 +946,20 @@ def mover_jugador(direccion, distancia, shift):
     if (jugador.x >= 379):
         jugador.x = 379
         hitbox.x = 379
-def disparo(disparo):
+def disparo():
     global contador, contador_extra, poder_bala, puntuacion, espera_bala, espera_extra
     if build == 1:
         if not pausa:
             if not focus:
-                if disparo:
-                    contador += 1
-                    if contador == espera_bala:
-                        contador = 0
-                        bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
-                        balas.append(bala)
-                        puntuacion += 5
-                        bala_1_sfx.play()
+                contador += 1
+                if contador == espera_bala:
+                    contador = 0
+                    bala = Actor("bala_"+str(poder_bala), (jugador.x, jugador.y - 9))
+                    balas.append(bala)
+                    puntuacion += 5
+                    bala_1_sfx.play()
             else:
-                if disparo:
+                if not super_knifes:
                     contador += 1
                     if contador == espera_bala:
                         contador = 0
@@ -976,23 +974,22 @@ def disparo(disparo):
     elif build == 2:
         if not pausa:
             if not focus:
-                if disparo:
-                    contador += 1
-                    contador_extra += 1
-                    if contador == espera_bala:
-                        contador = 0
-                        bala = Actor('gota', (jugador.x, jugador.y -9))
-                        balas.append(bala)
-                        puntuacion += 10
-                        bala_2_sfx.play(1)
-                    if contador_extra >= espera_extra/poder_bala:
-                        contador_extra = 0
-                        burbuja_sfx.play()
-                        puntuacion += 5
-                        teledirigido = Actor('auto_bubble',(jugador.x + 15, jugador.y - 9))
-                        teledirigido_2 = Actor('auto_bubble',(jugador.x - 15, jugador.y - 9))
-                        teledirigidas.append(teledirigido)
-                        teledirigidas.append(teledirigido_2)
+                contador += 1
+                contador_extra += 1
+                if contador == espera_bala:
+                    contador = 0
+                    bala = Actor('gota', (jugador.x, jugador.y -9))
+                    balas.append(bala)
+                    puntuacion += 10
+                    bala_2_sfx.play(1)
+                if contador_extra >= espera_extra/poder_bala:
+                    contador_extra = 0
+                    burbuja_sfx.play()
+                    puntuacion += 5
+                    teledirigido = Actor('auto_bubble',(jugador.x + 15, jugador.y - 9))
+                    teledirigido_2 = Actor('auto_bubble',(jugador.x - 15, jugador.y - 9))
+                    teledirigidas.append(teledirigido)
+                    teledirigidas.append(teledirigido_2)
             else:
                 contador_extra += 1
                 if contador_extra >= espera_extra-(poder_bala**2 + 2*poder_bala - 3):
@@ -1004,14 +1001,13 @@ def disparo(disparo):
     elif build == 3:
         if not pausa:
             if not focus:
-                if disparo:
-                    contador += 1
-                    if contador == espera_bala:
-                        contador = 0
-                        atomo = Actor('atom', (jugador.x, jugador.y -9))
-                        balas.append(atomo)
-                        puntuacion += 15
-                        bala_3_sfx.play()
+                contador += 1
+                if contador == espera_bala:
+                    contador = 0
+                    atomo = Actor('atom', (jugador.x, jugador.y -9))
+                    balas.append(atomo)
+                    puntuacion += 15
+                    bala_3_sfx.play()
 
 
                 
@@ -1046,46 +1042,44 @@ def seno_random(valor):
         x = 0 
     return round(x, 2), round(y, 2)
 
-def bala_spin(a):   
+def bala_spin():   
     global numero
     global contador_enemigo
     if not pausa:
-        if a:
-            contador_enemigo += 1
-            if contador_enemigo == espera_enemigos - 2:
-                contador_enemigo = 0
-                for random in range(0, 360, 60):
-                    nuevo = numero + random
-                    y = math.sin(math.radians(nuevo))
-                    x = math.cos(math.radians(nuevo))
-                    coord = (x, y)
-                    balas = Actor("bala.png", atacante.pos)
-                    todo = (balas, coord)
-                    bala_circular.append(todo)
-                numero += 14
+        contador_enemigo += 1
+        if contador_enemigo == espera_enemigos - 2:
+            contador_enemigo = 0
+            for random in range(0, 360, 60):
+                nuevo = numero + random
+                y = math.sin(math.radians(nuevo))
+                x = math.cos(math.radians(nuevo))
+                coord = (x, y)
+                balas = Actor("bala.png", atacante.pos)
+                todo = (balas, coord)
+                bala_circular.append(todo)
+            numero += 14
 
-def bala_circulos(e):
+def bala_circulos():
     global numero_2
     global contador_enemigo_3
     if not pausa:
-        if e:
-            contador_enemigo_3 += 1
-            if contador_enemigo_3 == 10:
-                contador_enemigo_3 = 0
-                for a in range(18):
-                    numero_2 += 20
-                    y = math.sin(math.radians(numero_2))
-                    x = math.cos(math.radians(numero_2))
-                    coord = (x, y)
-                    bala = Actor("bala.png", atacante.pos)
-                    todo = (bala, coord)
-                    circulos_wa.append(todo)
+        contador_enemigo_3 += 1
+        if contador_enemigo_3 == 10:
+            contador_enemigo_3 = 0
+            for a in range(18):
+                numero_2 += 20
+                y = math.sin(math.radians(numero_2))
+                x = math.cos(math.radians(numero_2))
+                coord = (x, y)
+                bala = Actor("bala.png", atacante.pos)
+                todo = (bala, coord)
+                circulos_wa.append(todo)
 
-def bomba(a):
+def bomba(comprobante):
     global rotation, super_knifes, bubble, rain, nuclear, bombardeo
     if not pausa:
         if build == 1:
-            if a == True:
+            if comprobante:
                 if focus and not rotation:
                     super_knifes = True
                 elif not super_knifes:
@@ -1094,7 +1088,7 @@ def bomba(a):
                 rotation = False
                 super_knifes = False
         elif build == 2:
-            if a == True:
+            if comprobante:
                 if focus and not bubble:
                     rain = True
                 elif not rain:
@@ -1103,7 +1097,7 @@ def bomba(a):
                 bubble = False
                 rain = False
         elif build == 3:
-            if a == True:
+            if comprobante:
                 if focus and not nuclear:
                     bombardeo = True
                 elif not bombardeo:
@@ -1116,22 +1110,21 @@ def daño_golpe_cambio(entero: int):
     global daño_golpe
     daño_golpe = entero
 
-def bomba_explosion(Comprobante):
+def bomba_explosion():
     if not pausa:
         global activa, bomba_activada, contador_explosion, puntuacion, daño
-        if Comprobante == True:
-            limpiar_pantalla(True)
-            if contador_explosion == 0:
-                explosion_bomba_sfx.play()
-            contador_explosion += 1
-            daño += 4/3
-            if contador_explosion == 60:
-                bomba_activada = True
-                if not len(numero_vidas) == 0:
-                    numero_vidas.pop(-1)
-                    reinicio_bombas()
-                else:
-                    sys.exit()
+        limpiar_pantalla()
+        if contador_explosion == 0:
+            explosion_bomba_sfx.play()
+        contador_explosion += 1
+        daño += 4/3
+        if contador_explosion == 60:
+            bomba_activada = True
+            if not len(numero_vidas) == 0:
+                numero_vidas.pop(-1)
+                reinicio_bombas()
+            else:
+                sys.exit()
         
 def bomba_menos():
     global numero_bombas
@@ -1150,56 +1143,55 @@ def reinicio_bombas():
         bomba_appendar = Actor("bomba_sprite.png", (420+eee*25, 90))
         numero_bombas.append(bomba_appendar)
 
-def movimiento_avanzado(Tru):
+def movimiento_avanzado():
     global contador_movimiento, validacion_1 ,validacion_2, temporizador_movimiento, dif_x, dif_y, x, y
     if not pausa:
-        if Tru == True:
-            if validacion_1 and validacion_2:
-                    temporizador_movimiento = 0
-                    contador_movimiento = 0
-                    dif_x = 0
-                    dif_y = 0
-                    x = 0
-                    y = 0
-                    validacion_1 = False
-                    validacion_2 = False
-            if contador_movimiento == 0:
-                contador_movimiento = randint(150, 300)
-            
-            if not temporizador_movimiento == contador_movimiento:
-                temporizador_movimiento += 1
-                x = randint(42, 360)
-                y = randint(34,160)
-                dif_x = x - atacante.x
-                dif_y = y - atacante.y
+        if validacion_1 and validacion_2:
+                temporizador_movimiento = 0
+                contador_movimiento = 0
+                dif_x = 0
+                dif_y = 0
+                x = 0
+                y = 0
+                validacion_1 = False
+                validacion_2 = False
+        if contador_movimiento == 0:
+            contador_movimiento = randint(150, 300)
+        
+        if not temporizador_movimiento == contador_movimiento:
+            temporizador_movimiento += 1
+            x = randint(42, 360)
+            y = randint(34,160)
+            dif_x = x - atacante.x
+            dif_y = y - atacante.y
 
-            else:
-                if dif_x < 0:
-                    if not atacante.x <= x:
-                        atacante.x += 0.02*dif_x
-                    else:
-                        validacion_1 = True    
-                if dif_x > 0:
-                    if not atacante.x >= x:
-                        atacante.x += 0.02*dif_x
-                    else:
-                        validacion_1 = True
-                if dif_y < 0:
-                    if not atacante.y <= y:
-                        atacante.y += 0.02*dif_y
-                    else:
-                        validacion_2 = True
-                if dif_y > 0:
-                    if not atacante.y >= y:
-                        atacante.y += 0.02*dif_y
-                    else:
-                        validacion_2 = True
+        else:
+            if dif_x < 0:
+                if not atacante.x <= x:
+                    atacante.x += 0.02*dif_x
+                else:
+                    validacion_1 = True    
+            if dif_x > 0:
+                if not atacante.x >= x:
+                    atacante.x += 0.02*dif_x
+                else:
+                    validacion_1 = True
+            if dif_y < 0:
+                if not atacante.y <= y:
+                    atacante.y += 0.02*dif_y
+                else:
+                    validacion_2 = True
+            if dif_y > 0:
+                if not atacante.y >= y:
+                    atacante.y += 0.02*dif_y
+                else:
+                    validacion_2 = True
     
-def cambio_bala(sdas):
+def cambio_bala(comprobante):
     global poder_bala, contador_cambio_bala, contador_extra, puntuacion
     if build == 1:
         if not pausa:
-            if sdas:
+            if comprobante:
                 contador_cambio_bala += 1
                 if 0<= contador_cambio_bala<= 240:
                     poder_bala = 1
@@ -1212,7 +1204,7 @@ def cambio_bala(sdas):
                 contador_cambio_bala = 0
     elif build == 2:
         if not pausa:
-            if sdas:
+            if comprobante:
                 contador_cambio_bala += 1
                 if 0<= contador_cambio_bala<= 300:
                     poder_bala = 1
@@ -1226,7 +1218,7 @@ def cambio_bala(sdas):
     elif build == 3:
         if not pausa:
             if focus:
-                if sdas:
+                if comprobante:
                     contador_cambio_bala += 1
                     if contador_cambio_bala == 60 or contador_cambio_bala == 180 or contador_cambio_bala == 300:
                         misil_carga.play()
@@ -1286,30 +1278,29 @@ def misil(poder):
     misil_lanzamiento.play()
     misiles.append(duo)    
 
-def ran_ran_ru(Comprobante, valor):
+def ran_ran_ru(valor):
     global contador_ranranru
     if not pausa:
-        if Comprobante:
-            contador_ranranru += 1 
-            if contador_ranranru >= valor:
-                contador_ranranru = 0
-                numero = randint(1, 4)
-                if numero == 1:
-                    y = randint(67, 533)
-                    x = 33
-                elif numero == 2:
-                    y = randint(67, 533)
-                    x = 377
-                elif numero == 3:
-                    x = randint(73, 297)
-                    y = 27
-                else:
-                    x = randint(73, 297)
-                    y = 573
-                balas = Actor("mc_bala", (x, y))
-                velo = 3
-                todo = [balas, numero, velo]
-                ran_ran_ru_inicio.append(todo)
+        contador_ranranru += 1 
+        if contador_ranranru >= valor:
+            contador_ranranru = 0
+            numero = randint(1, 4)
+            if numero == 1:
+                y = randint(67, 533)
+                x = 33
+            elif numero == 2:
+                y = randint(67, 533)
+                x = 377
+            elif numero == 3:
+                x = randint(73, 297)
+                y = 27
+            else:
+                x = randint(73, 297)
+                y = 573
+            balas = Actor("mc_bala", (x, y))
+            velo = 3
+            todo = [balas, numero, velo]
+            ran_ran_ru_inicio.append(todo)
                 
 def ran_exposure(x, y, direccion):
     if not pausa:
@@ -1375,7 +1366,7 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
                 
-        elif direccion == 3: #Arriba
+        elif direccion == 3: #Abajo
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
@@ -1406,7 +1397,7 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
 
-        else: #Abajo
+        else: #Arriba
             ran_ran_ru_sfx.play()
             for _ in range(141):
                 if _ in (5, 15, 20, 25, 35, 40):
@@ -1437,37 +1428,34 @@ def ran_exposure(x, y, direccion):
                     ran_bala.append(trio_1)
                     ran_bala.append(trio_2)
 
-def ron(Tu):
+def ron():
     global ron_contador
-    if Tu:
-        if not pausa:
-            ron_contador += 1
-            if ron_contador >= 60:
-                ron_contador = 0
-                for x in range(31, 380, 58):
-                    va = x
-                    bala_mov = Actor("bala_azul.png", (x , 7))
-                    dio = [bala_mov, 0, va]
-                    ron_bala.append(dio)
+    if not pausa:
+        ron_contador += 1
+        if ron_contador >= 60:
+            ron_contador = 0
+            for x in range(31, 380, 58):
+                va = x
+                bala_mov = Actor("bala_azul.png", (x , 7))
+                dio = [bala_mov, 0, va]
+                ron_bala.append(dio)
 
-def ald(Tu):
+def ald():
     global ald_contador
-    if Tu:
-        if not pausa:
-            ald_contador += 1
-            if ald_contador >= 90:
-                ald_contador = 0
-                for y in range(26, 576, 61):
-                    va = y
-                    bala_mov = Actor("bala_azul.png", (397 , y))
-                    dio = [bala_mov, 0, va]
-                    ald_bala.append(dio)
+    if not pausa:
+        ald_contador += 1
+        if ald_contador >= 90:
+            ald_contador = 0
+            for y in range(26, 576, 61):
+                va = y
+                bala_mov = Actor("bala_azul.png", (397 , y))
+                dio = [bala_mov, 0, va]
+                ald_bala.append(dio)
 
-def limpiar_pantalla(comp):
-    if comp:
-        if not pausa:
-            for lista in todas_las_balas_enemigas:
-                lista.clear()
+def limpiar_pantalla():
+    if not pausa:
+        for lista in todas_las_balas_enemigas:
+            lista.clear()
             
                 
 pgzrun.go()
