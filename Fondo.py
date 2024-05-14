@@ -424,15 +424,15 @@ def update():
         if not pausa:
             if burbuja[1] == 0:
                 burbuja_sfx.play()
-            if bomba_2[0][0].colliderect(atacante) and bomba_2[1][0].colliderect(atacante):
+            if (bomba_2[0][0].colliderect(atacante) and bomba_2[1][0].colliderect(atacante)) and (bomba_2[0][1] > 1800 and bomba_2[1][1] > 1800) :
                 daño += math.ceil(25+(bomba_2[0][2]+bomba_2[1][2])/10)
                 bomba_2.clear()
             burbuja[1] += 8
             if burbuja[0].scale < 1:
                 burbuja[0].scale += 0.01
-            if not burbuja[1] >= 1800:
-                burbuja[0].y = jugador.y - 50*math.sin(math.radians(burbuja[1]))
-                burbuja[0].x = jugador.x + 50*math.cos(math.radians(burbuja[1]))
+            if not burbuja[1] > 1800:
+                burbuja[0].y = jugador.y - 50*math.sin(math.radians(burbuja[1])) * burbuja[0].scale
+                burbuja[0].x = jugador.x + 50*math.cos(math.radians(burbuja[1])) * burbuja[0].scale
 
             elif burbuja[1] == 1820 or burbuja[1] == 1864:
                 lanzamiento.stop()
@@ -753,8 +753,8 @@ def update():
   
     for mini in dispersados:
         if not pausa:
-            mini[0].x += 6 * mini[1][0]
-            mini[0].y -= 6 * mini[1][1]
+            mini[0].x += 10 * mini[1][0]
+            mini[0].y -= 10 * mini[1][1]
             if mini[0].colliderect(atacante):
                 daño += 0.3
                 puntuacion += 5
