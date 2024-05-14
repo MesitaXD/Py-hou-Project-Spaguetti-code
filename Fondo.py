@@ -35,6 +35,7 @@ mensaje.mainloop()
 os.environ['SDL_VIDEO_WINDOW_POS'] = '460,140'
 import pygame
 import pgzrun
+from pgzhelper import *
 import math
 import sys
 from random import randint
@@ -121,8 +122,8 @@ bala_1_sfx = sounds.load("disparo.wav")
 bala_1_sfx.set_volume(0.1)
 bala_2_sfx = sounds.load("finger_snap.wav")
 bala_2_sfx.set_volume(0.3)
-bala_2_extra_sfx = sounds.load("bubble.wav")
-bala_2_extra_sfx.set_volume(0.3)
+burbuja_sfx = sounds.load("bubble.wav")
+burbuja_sfx.set_volume(0.3)
 big_b_sfx = sounds.load("pop.wav")
 big_b_sfx.set_volume(0.3)
 spin_sfx = sounds.load("rope_spin.wav")
@@ -148,6 +149,10 @@ vine_sfx = sounds.load('vine_boom.mp3')
 vine_sfx.set_volume(0.8)
 fire_knife_sfx = sounds.load("fireball.wav")
 fire_knife_sfx.set_volume(0.8)
+poder_sfx = sounds.load("power.wav")
+poder_sfx.set_volume(0.1)
+lanzamiento = sounds.load("launch.wav")
+lanzamiento.set_volume(0.8)
 giro_cooldown_sfx = 0
 contador_movimiento = 0
 temporizador_movimiento = 0
@@ -194,7 +199,6 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
-animacion_cuchillo = 0
 def draw():
     rango_visible.draw()
     for cosa in bala_circular:
@@ -269,16 +273,19 @@ def draw():
         carga_2.draw()
     if poder_bala == 3:
         carga_3.draw()
-    reloj.tick()
+    reloj.tick(60)
     screen.draw.text(str(round(reloj.get_fps(), 1)), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-60))
     screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
 
 def update():
-    global numero_bombas, knife_contador, animacion_cuchillo, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global numero_bombas, knife_contador, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
         build = nueva_build
+    if keyboard.p:
+        toggle_fullscreen()
+        pausa = True
 
     direccion = ""
     if (keyboard.up):
@@ -361,18 +368,17 @@ def update():
                 for multi in range(1,6):
                     x = (multi-3)*20 + jugador.x
                     cuchillo = Actor('knife_0', (x , jugador.y-5))
+                    cuchillo.images = ["knife_0", "knife_1", "knife_2", "knife_3"]
+                    cuchillo.fps = 6
                     cuchillos.append(cuchillo)
                 fire_knife_sfx.play()
             knife_contador += 1
     else:
         knife_contador = 0
-    animacion_cuchillo += 1
-    if animacion_cuchillo >= 4 * 5:
-        animacion_cuchillo = 0
 
     for cuchillo in cuchillos:
         if not pausa:
-            cuchillo.image = "knife_"+str(math.floor(animacion_cuchillo/5))
+            cuchillo.animate()
             cuchillo.y -= 10
             if cuchillo.y < 10:
                 cuchillos.remove(cuchillo)
@@ -386,9 +392,11 @@ def update():
                 bomba_print = True
                 coord = jugador.pos
                 burbuja_1 = Actor("explosive_mix.png", coord)
+                burbuja_1.scale = 0
                 burbuja_2 = Actor("explosive_mix.png", coord)
-                b1 = (burbuja_1, 1)
-                b2 = (burbuja_2, 2)
+                burbuja_2.scale = 0
+                b1 = [burbuja_1, 0, 0]
+                b2 = [burbuja_2, 180, 0]
                 bomba_2.append(b1)
                 bomba_2.append(b2)
                 primera_vez = 1
@@ -412,6 +420,25 @@ def update():
     else:
         contador_lluvia = 0
 
+    for burbuja in bomba_2:
+        if not pausa:
+            if burbuja[1] == 0:
+                burbuja_sfx.play()
+            if bomba_2[0][0].colliderect(atacante) and bomba_2[1][0].colliderect(atacante):
+                daño += math.ceil(25+(bomba_2[0][2]+bomba_2[1][2])/10)
+                bomba_2.clear()
+            burbuja[1] += 8
+            if burbuja[0].scale < 1:
+                burbuja[0].scale += 0.01
+            if not burbuja[1] >= 1800:
+                burbuja[0].y = jugador.y - 50*math.sin(math.radians(burbuja[1]))
+                burbuja[0].x = jugador.x + 50*math.cos(math.radians(burbuja[1]))
+
+            elif burbuja[1] == 1820 or burbuja[1] == 1864:
+                lanzamiento.stop()
+                lanzamiento.play()
+            else:
+                teledirigir_balas(burbuja[0], 10)
 
     for gota in lluvia:
         if not pausa:
@@ -458,6 +485,7 @@ def update():
         bomba.pos = (1000, 1)
         bomba_activada = False
         contador_explosion = 0
+
     if bombardeo:
         focus = True
         if not pausa:
@@ -497,31 +525,13 @@ def update():
                 misil[0].x += 3 * misil[1][0]/(misil[2]/6)
                 misil[0].y -= 3 * misil[1][1]/(misil[2]/6)
             if misil[2] > 30:
-                teledirigir_balas(misil[0], 5)
+                teledirigir_balas(misil[0], 7)
 
             if misil[0].colliderect(atacante):
                 misil_bombardeo.remove(misil)
                 daño += 40/6
                 misil_explosion.play()
                 puntuacion += 10
-        
-
-    for burbuja in bomba_2:
-        if not pausa:
-            if burbuja[1] == 1:
-                burbuja[0].y -= 1
-                if (burbuja[0].x <= 31):
-                    suma_1 = 8
-                if (burbuja[0].x >= 379):
-                    suma_1 = -8
-                burbuja[0].x += suma_1
-            elif burbuja[1] == 2:
-                burbuja[0].y -= 1
-                if (burbuja[0].x <= 31):
-                    suma_2 = 8
-                if (burbuja[0].x >= 379):
-                    suma_2= -8
-                burbuja[0].x += suma_2
 
     if keyboard.a:
         bala_spin(True)
@@ -548,10 +558,7 @@ def update():
             if build == 1:
                 espera = 300
             if build == 2:
-                if focus and not bomba_cd:
-                    espera = 300
-                elif not focus and not bomba_cd:
-                    espera = 600
+                espera = 300   
             if build == 3:
                 if focus and not bomba_cd:
                     espera = 60
@@ -585,7 +592,7 @@ def update():
     elif build == 2:
         if not pausa:
             if not bomba_y_vida:
-                numero_de_bombas = 4
+                numero_de_bombas = 3
                 espera_bala = 8
                 espera_extra = 32
                 velocidad_balas = 15
@@ -594,7 +601,7 @@ def update():
                 for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (420+x, 50))
                     numero_vidas.append(vida)
-                for x_2 in range(0, 76, 25):
+                for x_2 in range(0, 51, 25):
                     bomba_appendar = Actor("bomba_sprite.png", (420+x_2, 90))
                     numero_bombas.append(bomba_appendar)
                     bomba_y_vida = True
@@ -629,6 +636,9 @@ def update():
                 if burbuja[0].colliderect(coso[0]):
                     if coso in listas:
                         listas.remove(coso)
+                        burbuja[2] += 1
+                        if burbuja[1] < 1800:
+                            poder_sfx.play()
 
             if bomba_1.colliderect(coso[0]):
                 if coso in listas:
@@ -977,7 +987,7 @@ def disparo(disparo):
                         bala_2_sfx.play(1)
                     if contador_extra >= espera_extra/poder_bala:
                         contador_extra = 0
-                        bala_2_extra_sfx.play()
+                        burbuja_sfx.play()
                         puntuacion += 5
                         teledirigido = Actor('auto_bubble',(jugador.x + 15, jugador.y - 9))
                         teledirigido_2 = Actor('auto_bubble',(jugador.x - 15, jugador.y - 9))
