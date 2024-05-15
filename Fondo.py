@@ -69,7 +69,6 @@ bomba_cd = False
 numero = 0
 angulo_aumento = 0
 fondito = "fondo_menu.png"  
-jugador = Actor('jugador.jpg', (200, 530))
 hitbox = Actor('hitbox.png', (200, 530))
 gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
 menu_pausa = Actor('pausa.png', (-163, 300))
@@ -199,6 +198,7 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
+
 def draw():
     rango_visible.draw()
     for cosa in bala_circular:

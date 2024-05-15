@@ -24,11 +24,11 @@ escudo_color = (255, 132, 0)
 escudo_status = False
 color_fondo = (0, 0, 0)
 window = pygame.display.set_mode(window_size)
-pygame.display.set_caption("Fondo Personalizado")
+pygame.display.set_caption("Bad Apple!!!")
 frame = 1
 clock = pygame.time.Clock()
 fps = 30
-distancia = 6
+distancia = 8
 ya = False
 musica = pygame.mixer.Sound("sounds\\bad.mp3")
 musica.play()
@@ -101,9 +101,9 @@ while True:
         elif not keys[K_z]:
             ya = False
         if keys[K_LSHIFT]:
-            distancia = 2
+            distancia = 4
         else:
-            distancia = 6
+            distancia = 8
     digitos = len(str(frame))
     background_image = pygame.image.load("images\\bad\\frame"+"0"*(5-digitos)+str(frame)+".png").convert()
     background_image = pygame.transform.scale(background_image, (600, 450))
@@ -137,7 +137,6 @@ while True:
         else:
             if escudo_actual < escudo_max:
                 escudo_actual += escudo_max/40
-        print(escudo_status)
         if color != color_jugador:
             if not escudo_status:
                 vida_actual -= vida_max / tiempo_maximo_vida
