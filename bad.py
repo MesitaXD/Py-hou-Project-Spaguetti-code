@@ -21,7 +21,7 @@ victoria = False
 vida_max = 650
 vida_actual = 650
 vida_color = (0, 255, 0)
-tiempo_maximo_vida = 10
+tiempo_maximo_vida = 300
 escudo_max = 650
 escudo_actual = 650
 escudo_color = (255, 132, 0)
@@ -29,7 +29,7 @@ escudo_status = False
 color_fondo = (0, 0, 0)
 window = pygame.display.set_mode(window_size)
 pygame.display.set_caption("Bad Apple!!!")
-frame = 6560
+frame = 1
 puntaje = 0
 perfect_contador = 0
 clock = pygame.time.Clock()
@@ -152,7 +152,8 @@ while True:
         victoria = True
     background_image = pygame.transform.scale(background_image, (600, 450))
     window.blit(background_image, (100, 75))
-    jugador.draw(window)
+    if not victoria:
+        jugador.draw(window)
     if not derrota:
         pygame.draw.rect(window, escudo_color, (80, 30, escudo_actual, 10))
         pygame.draw.rect(window, vida_color, (80, 50, vida_actual, 10))
