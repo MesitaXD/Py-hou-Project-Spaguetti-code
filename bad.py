@@ -157,12 +157,12 @@ while True:
             color = color_jugador
         escudo_actual = max(0, escudo_actual)
         if escudo_status == True:
-            escudo_actual -= escudo_max/10
+            escudo_actual -= escudo_max/20
             if escudo_actual <= 0:
                 escudo_status = False
         else:
             if escudo_actual < escudo_max:
-                escudo_actual += escudo_max/40
+                escudo_actual += escudo_max/80
         if frame_en_pantalla < 6560:
             if color != color_jugador:
                 if not escudo_status:
