@@ -226,4 +226,3 @@ while True:
             frame += 1
         if frame == 0:
             frame = 1
-    

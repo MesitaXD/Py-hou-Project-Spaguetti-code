@@ -1458,6 +1458,6 @@ def limpiar_pantalla():
     if not pausa:
         for lista in todas_las_balas_enemigas:
             lista.clear()
-            
-                
+
+
 pgzrun.go()
