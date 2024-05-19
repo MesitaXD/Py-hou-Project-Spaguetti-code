@@ -37,7 +37,6 @@ clock = pygame.time.Clock()
 ya = False
 icono = pygame.image.load("images\\apple.jpg")
 pygame.display.set_icon(icono)
-# musica = pygame.mixer.Sound("sounds\\bad.mp3")
 musica = pygame.mixer.music.load("sounds\\bad.mp3")
 pygame.mixer.music.play()
 def cargar_puntuacion():
@@ -219,8 +218,12 @@ while True:
                 perfect_contador = -10
     pygame.display.update()
     if not pausa:
-        frame = int(pygame.mixer.music.get_pos()*30/1000)
+        if frame < 6577:
+            clock.tick(60)
+            frame = int((pygame.mixer.music.get_pos())*30/1000)
+        if frame >= 6577:
+            clock.tick(30)
+            frame += 1
         if frame == 0:
             frame = 1
-    print(frame)
-    clock.tick(60)
+    
