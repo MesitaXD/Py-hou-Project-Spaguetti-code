@@ -29,7 +29,7 @@ negro = (0, 0, 0)
 icono = pygame.image.load("images\\ran.jpg")
 pygame.display.set_icon(icono)
 musica = pygame.mixer.music.load("sounds\\deaf.mp3")
-pygame.mixer.music.set_volume(0.1)
+pygame.mixer.music.set_volume(1)
 vine_sfx = pygame.mixer.Sound("sounds\\vine_boom.mp3")
 pos_mouse = pygame.mouse.get_pos()
 ultima_pos_mouse = pos_mouse
