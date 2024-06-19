@@ -159,6 +159,8 @@ lanzamiento = sounds.load("launch.wav")
 lanzamiento.set_volume(0.8)
 spellcard = sounds.load("spellcard.wav")
 spellcard.set_volume(1)
+ataque_5 = sounds.load("attack5.wav")
+ataque_5.set_volume(0.8)
 # mas cosas
 giro_cooldown_sfx = 0
 contador_movimiento = 0
@@ -206,13 +208,17 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
-fase = 3
+fase = 4
 nueva_fase = False
 contador_cajitas = 0
 cajitas_feliz = []
 fps = 60
 puntos = []
-todas_las_balas_enemigas = [bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio, cajitas_feliz]
+papas = []
+contador_papas = 0
+contador_tomate = 0
+tomates = []
+todas_las_balas_enemigas = [tomates, bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio, cajitas_feliz, papas]
 
 def draw():
     rango_visible.draw()
@@ -248,7 +254,6 @@ def draw():
 
     for cosa in circulos_wa:
         cosa[0].draw()
-
     for ran in ran_ran_ru_inicio:
         ran[0].draw()
     for ran in ran_bala:
@@ -260,7 +265,10 @@ def draw():
         al[0].draw()
     for cajas in cajitas_feliz:
         cajas[0].draw()
-
+    for papa in papas:
+        papa[0].draw()
+    for tomate in tomates:
+        tomate[0].draw()
     atacante.draw()
 
     for bala in balas:
@@ -340,7 +348,7 @@ def update():
         cambio_bala(False)
 
     if (keyboard.e):
-        cajitas(20)
+        pass
 
     if not pausa:
         if (keyboard.lshift):
@@ -558,7 +566,7 @@ def update():
 
             if misil[0].colliderect(atacante):
                 misil_bombardeo.remove(misil)
-                daño += 40/6
+                daño += 30/6
                 misil_explosion.play()
                 puntuacion += 10
 
@@ -751,7 +759,7 @@ def update():
             elif misi[1] == 2:
                 daño += 10
             elif misi[1] == 3:
-                daño += 20
+                daño += 15
             puntuacion += 100
             misil_explosion.play()
             misiles.remove(misi)
@@ -787,7 +795,7 @@ def update():
                     spell = spellcard_ronald(spell)
                     daño = -40
                 if not spell:
-                    daño_golpe_cambio(6)
+                    daño_golpe_cambio(3)
                     ran_ran_ru(180)
                     ron()
                     ald()
@@ -812,8 +820,8 @@ def update():
                     spell = spellcard_ronald(spell)
                     daño = -10
                 if not spell:
-                    daño_golpe_cambio(5)
-                    cajitas(25)
+                    daño_golpe_cambio(2)
+                    cajitas(30)
             elif vida_max <= 0:
                 nueva_fase = True
         else:
@@ -833,12 +841,40 @@ def update():
                     vida_max = 64
                 if spell:
                     spell = spellcard_ronald(spell)
-                    daño = -10
+                    daño = -40
                 if not spell:
-                    daño_golpe_cambio(5)
-                    cajitas(25)
+                    daño_golpe_cambio(3)
+                    caida_frita(20)
+                    cruz_de_tomate(60)
             elif vida_max <= 0:
                 nueva_fase = True
+        else:
+            cambio_fase()
+            spellcard_balas()
+    elif fase == 4:
+        if not nueva_fase:
+            if vida_max > 70:
+                rotacion_bala_personalizada(10, atacante.pos, 12, "bala", 6, 0, 5)
+                rotacion_bala_personalizada_2(8, atacante.pos, 12, "bala", 6, 0, 2.5)
+                movimiento_avanzado(0, 0.02, 0, 0)
+                daño_golpe_cambio(0.8)
+            elif 0 < vida_max <= 70:
+                if vida_max > 65:
+                    spellcard.play()
+                    spellcard_balas()
+                    vida_max = 64
+                if spell:
+                    spell = spellcard_ronald(spell)
+                    daño = -40
+                if not spell:
+                    daño_golpe_cambio(3)
+                    caida_frita(20)
+                    cruz_de_tomate(60)
+            elif vida_max <= 0:
+                nueva_fase = True
+        else:
+            cambio_fase()
+            spellcard_balas()
     
     for mini in dispersados:
         if not pausa:
@@ -1032,15 +1068,32 @@ def update():
                 if cajas[3] >=  20:
                     cajitas_feliz.remove(cajas)
     for punto in puntos:
-        if punto[1] < 20:
-            punto[0].y -= 10 - punto[1]/2
-            punto[1] += 1
-        else:
-            teledirigir_balas(punto[0], 10 , jugador)
-        if punto[0].colliderect(jugador):
-            puntuacion += 100
-            puntos.remove(punto)
-
+        if not pausa:
+            if punto[1] < 20:
+                punto[0].y -= 10 - punto[1]/2
+                punto[1] += 1
+            else:
+                teledirigir_balas(punto[0], 10 , jugador)
+            if punto[0].colliderect(jugador):
+                puntuacion += 100
+                puntos.remove(punto)
+    for papa in papas:
+        if not pausa:
+            papa[0].y += 3
+            papa[2].y += 3
+            if not papa[2].colliderect(rango_visible):
+                papas.remove(papa)
+    for tomate in tomates:
+        if not pausa:
+            tomate[0].y += tomate[1]*3
+            tomate[2].y += tomate[1]*3
+            if tomate[2].y > 585:
+                tomate[0].y = 7
+                tomate[2].y = 7
+                tomate[1] += 1
+            if tomate[1] == 4:
+                tomates.remove(tomate)
+ 
             
 def mover_jugador(direccion, distancia, shift):
     if not pausa:
@@ -1224,7 +1277,30 @@ def rotacion_bala_personalizada(cadencia, posicion, rango, sprite, variacion, co
                 todo = (bala, coord, hitbox_bala, velocidad_personalizada)
                 circulos_wa.append(todo)
             numero_2 += variacion
-            
+
+def rotacion_bala_personalizada_2(cadencia, posicion, rango, sprite, variacion, contador_personalizado, velocidad_personalizada):
+    global numero
+    global contador_enemigo
+    if not pausa:
+        if contador_personalizado == 0:
+            contador_enemigo += 1
+        else:
+            contador_enemigo = contador_personalizado
+        if (contador_enemigo % cadencia) == 0:
+            contador_enemigo = 0
+            for a in range(rango):
+                numero += 360/rango
+                y = math.sin(math.radians(numero))
+                x = math.cos(math.radians(numero))
+                coord = (x, y)
+                angle = int(math.degrees(math.atan2(y, x)))
+                bala = Actor(sprite + ".png", posicion)
+                bala.angle = - angle
+                hitbox_bala = Actor(sprite+"_hitbox.png", posicion)
+                todo = (bala, coord, hitbox_bala, velocidad_personalizada)
+                circulos_wa.append(todo)
+            numero += variacion
+
 def bomba(comprobante):
     global rotation, super_knifes, bubble, rain, nuclear, bombardeo
     if not pausa:
@@ -1674,4 +1750,33 @@ def puntos_spellcard(lista):
             punto = Actor("hitbox.png", balas[0].pos)
             todo = [punto, 0]
             puntos.append(todo)
+
+def caida_frita(cadencia):
+    global contador_papas
+    if not pausa:
+        contador_papas += 1
+        if contador_papas >= cadencia:
+            contador_papas = 0
+            ataque_5.play()
+            for x in range(31, 380, 58):
+                papa = Actor("papa.png", (x , 7))
+                papa_hitbox = Actor("papa_hitbox.png", (x , 7))
+                todo = [papa, "relleno", papa_hitbox]
+                papas.append(todo)
+
+def cruz_de_tomate(cadencia):
+    global contador_tomate
+    if not pausa:
+        contador_tomate += 1
+        if contador_tomate >= cadencia:
+            contador_tomate = 0
+            zona = ((jugador.x - 31) // 58 )+ 1
+            if zona > 6:
+                zona = 6
+            x = (58 * zona) +1
+            tomate = Actor("tomate.png", (x, 7))
+            tomate_hitbox = Actor("tomate_hitbox.png", (x, 7))
+            todo = [tomate, 1 , tomate_hitbox]
+            tomates.append(todo)
+ 
 pgzrun.go()
