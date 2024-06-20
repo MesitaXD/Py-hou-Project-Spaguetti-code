@@ -208,7 +208,7 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
-fase = 4
+fase = 1
 nueva_fase = False
 contador_cajitas = 0
 cajitas_feliz = []
@@ -216,7 +216,10 @@ fps = 60
 puntos = []
 papas = []
 contador_papas = 0
+contador_papas_2 = 0
 contador_tomate = 0
+contador_tomate_2 = 0
+tomate_dire = 0
 tomates = []
 todas_las_balas_enemigas = [tomates, bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio, cajitas_feliz, papas]
 
@@ -780,101 +783,103 @@ def update():
                 daño += 1.5
                 teledirigido_ex.remove(big_b)
                 puntuacion += 20
-    if fase == 1:
-        if not nueva_fase:
-            if vida_max > 70:
-                bala_spin(10)
-                movimiento_avanzado(0, 0.02, 0, 0)
-            elif 0 < vida_max <= 70:
-                movimiento_avanzado(1, 0.02, 195, 90)
-                if vida_max > 65:
-                    spellcard.play()
-                    spellcard_balas()
-                    vida_max = 64
-                if spell:
-                    spell = spellcard_ronald(spell)
-                    daño = -40
-                if not spell:
-                    daño_golpe_cambio(3)
-                    ran_ran_ru(180)
-                    ron()
-                    ald()
-            elif vida_max <= 0:
-                vida_max = 0
-                nueva_fase = True
-        else:
-            cambio_fase()
-            spellcard_balas()
-    elif fase == 2:
-        if not nueva_fase:
-            if vida_max > 70:
-                bala_spin(8)
-                movimiento_avanzado(0, 0.02, 0, 0)
-                daño_golpe_cambio(0.5)
-            elif 0 < vida_max <= 70:
-                if vida_max > 65:
-                    spellcard.play()
-                    spellcard_balas()
-                    vida_max = 64
-                if spell:
-                    spell = spellcard_ronald(spell)
-                    daño = -10
-                if not spell:
-                    daño_golpe_cambio(2)
-                    cajitas(30)
-            elif vida_max <= 0:
-                nueva_fase = True
-        else:
-            cambio_fase()
-            spellcard_balas() 
-    elif fase == 3:
-        if not nueva_fase:
-            if vida_max > 70:
-                bala_spin(8)
-                rotacion_bala_personalizada(8, atacante.pos, 10, "bala", 18, 0, 5)
-                movimiento_avanzado(0, 0.02, 0, 0)
-                daño_golpe_cambio(0.8)
-            elif 0 < vida_max <= 70:
-                if vida_max > 65:
-                    spellcard.play()
-                    spellcard_balas()
-                    vida_max = 64
-                if spell:
-                    spell = spellcard_ronald(spell)
-                    daño = -40
-                if not spell:
-                    daño_golpe_cambio(3)
-                    caida_frita(20)
-                    cruz_de_tomate(60)
-            elif vida_max <= 0:
-                nueva_fase = True
-        else:
-            cambio_fase()
-            spellcard_balas()
-    elif fase == 4:
-        if not nueva_fase:
-            if vida_max > 70:
-                rotacion_bala_personalizada(10, atacante.pos, 12, "bala", 6, 0, 5)
-                rotacion_bala_personalizada_2(8, atacante.pos, 12, "bala", 6, 0, 2.5)
-                movimiento_avanzado(0, 0.02, 0, 0)
-                daño_golpe_cambio(0.8)
-            elif 0 < vida_max <= 70:
-                if vida_max > 65:
-                    spellcard.play()
-                    spellcard_balas()
-                    vida_max = 64
-                if spell:
-                    spell = spellcard_ronald(spell)
-                    daño = -40
-                if not spell:
-                    daño_golpe_cambio(3)
-                    caida_frita(20)
-                    cruz_de_tomate(60)
-            elif vida_max <= 0:
-                nueva_fase = True
-        else:
-            cambio_fase()
-            spellcard_balas()
+    if not pausa:
+        if fase == 1:
+            if not nueva_fase:
+                if vida_max > 70:
+                    bala_spin(10)
+                    movimiento_avanzado(0, 0.02, 0, 0)
+                elif 0 < vida_max <= 70:
+                    movimiento_avanzado(1, 0.02, 195, 90)
+                    if vida_max > 65:
+                        spellcard.play()
+                        spellcard_balas()
+                        vida_max = 64
+                    if spell:
+                        spell = spellcard_ronald(spell)
+                        daño = -40
+                    if not spell:
+                        daño_golpe_cambio(3)
+                        ran_ran_ru(180)
+                        ron()
+                        ald()
+                elif vida_max <= 0:
+                    vida_max = 0
+                    nueva_fase = True
+            else:
+                cambio_fase()
+                spellcard_balas()
+        elif fase == 2:
+            if not nueva_fase:
+                if vida_max > 70:
+                    bala_spin(8)
+                    movimiento_avanzado(0, 0.02, 0, 0)
+                    daño_golpe_cambio(0.5)
+                elif 0 < vida_max <= 70:
+                    if vida_max > 65:
+                        spellcard.play()
+                        spellcard_balas()
+                        vida_max = 64
+                    if spell:
+                        spell = spellcard_ronald(spell)
+                        daño = -10
+                    if not spell:
+                        daño_golpe_cambio(2)
+                        cajitas(30)
+                elif vida_max <= 0:
+                    nueva_fase = True
+            else:
+                cambio_fase()
+                spellcard_balas() 
+        elif fase == 3:
+            if not nueva_fase:
+                if vida_max > 70:
+                    bala_spin(8)
+                    rotacion_bala_personalizada(6, atacante.pos, 6, "bala", 10, 0, 4)
+                    movimiento_avanzado(0, 0.02, 0, 0)
+                    daño_golpe_cambio(0.8)
+                elif 0 < vida_max <= 70:
+                    if vida_max > 65:
+                        spellcard.play()
+                        spellcard_balas()
+                        vida_max = 64
+                    if spell:
+                        spell = spellcard_ronald(spell)
+                        daño = -40
+                    if not spell:
+                        daño_golpe_cambio(3)
+                        papas_caida(30)
+                        papas_lado(30)
+                        tomate_caida(120)
+                        tomate_lado(120)
+                elif vida_max <= 0:
+                    nueva_fase = True
+            else:
+                cambio_fase()
+                spellcard_balas()
+        elif fase == 4:
+            if not nueva_fase:
+                if vida_max > 70:
+                    rotacion_bala_personalizada(10, atacante.pos, 12, "bala", 6, 0, 5)
+                    rotacion_bala_personalizada_2(8, atacante.pos, 12, "bala", 6, 0, 2.5)
+                    movimiento_avanzado(0, 0.02, 0, 0)
+                    daño_golpe_cambio(0.8)
+                elif 0 < vida_max <= 70:
+                    if vida_max > 65:
+                        spellcard.play()
+                        spellcard_balas()
+                        vida_max = 64
+                    if spell:
+                        spell = spellcard_ronald(spell)
+                        daño = -40
+                    if not spell:
+                        daño_golpe_cambio(3)
+        
+                elif vida_max <= 0:
+                    nueva_fase = True
+            else:
+                cambio_fase()
+                spellcard_balas()
     
     for mini in dispersados:
         if not pausa:
@@ -1079,22 +1084,37 @@ def update():
                 puntos.remove(punto)
     for papa in papas:
         if not pausa:
-            papa[0].y += 3
-            papa[2].y += 3
-            if not papa[2].colliderect(rango_visible):
-                papas.remove(papa)
+            if papa[3] == 0:
+                papa[0].y += 3
+                papa[2].y += 3
+                if not papa[2].colliderect(rango_visible):
+                    papas.remove(papa)
+            else:
+                papa[0].x -= 3
+                papa[2].x -= 3
+                if not papa[2].colliderect(rango_visible):
+                    papas.remove(papa)
+
     for tomate in tomates:
-        if not pausa:
-            tomate[0].y += tomate[1]*3
-            tomate[2].y += tomate[1]*3
-            if tomate[2].y > 585:
-                tomate[0].y = 7
-                tomate[2].y = 7
-                tomate[1] += 1
-            if tomate[1] == 4:
-                tomates.remove(tomate)
- 
-            
+        if not pausa: 
+            if tomate[3] == 0:
+                tomate[0].y += tomate[1]*3
+                tomate[2].y += tomate[1]*3
+                if tomate[2].y > 585:
+                    tomate[0].y = 7
+                    tomate[2].y = 7
+                    tomate[1] += 1
+                if tomate[1] == 4:
+                    tomates.remove(tomate)
+            else: 
+                tomate[0].x -= tomate[1]*3
+                tomate[2].x -= tomate[1]*3
+                if tomate[2].x < 25:
+                    tomate[0].x = 397
+                    tomate[2].x = 397
+                    tomate[1] += 1
+                if tomate[1] == 4:
+                    tomates.remove(tomate)
 def mover_jugador(direccion, distancia, shift):
     if not pausa:
         if focus:
@@ -1751,7 +1771,7 @@ def puntos_spellcard(lista):
             todo = [punto, 0]
             puntos.append(todo)
 
-def caida_frita(cadencia):
+def papas_caida(cadencia):
     global contador_papas
     if not pausa:
         contador_papas += 1
@@ -1761,22 +1781,60 @@ def caida_frita(cadencia):
             for x in range(31, 380, 58):
                 papa = Actor("papa.png", (x , 7))
                 papa_hitbox = Actor("papa_hitbox.png", (x , 7))
-                todo = [papa, "relleno", papa_hitbox]
+                todo = [papa, "relleno", papa_hitbox, 0]
                 papas.append(todo)
 
-def cruz_de_tomate(cadencia):
-    global contador_tomate
+def tomate_caida(cadencia):
+    global contador_tomate, tomate_dire
     if not pausa:
-        contador_tomate += 1
-        if contador_tomate >= cadencia:
-            contador_tomate = 0
-            zona = ((jugador.x - 31) // 58 )+ 1
-            if zona > 6:
-                zona = 6
-            x = (58 * zona) +1
-            tomate = Actor("tomate.png", (x, 7))
-            tomate_hitbox = Actor("tomate_hitbox.png", (x, 7))
-            todo = [tomate, 1 , tomate_hitbox]
-            tomates.append(todo)
+        if tomate_dire == 0:
+            contador_tomate += 1
+            if (contador_tomate % cadencia) == 0:
+                contador_tomate = 0
+                tomate_dire = 1
+                zona = ((jugador.x - 31) // 58 )+ 1
+                if zona > 6:
+                    zona = 6
+                x = (58 * zona) +1
+                tomate = Actor("tomate.png", (x, 7))
+                tomate_hitbox = Actor("tomate_hitbox.png", (x, 7))
+                todo = [tomate, 1 , tomate_hitbox, 0]
+                tomates.append(todo)
+
+
+def tomate_lado(cadencia):
+    global contador_tomate_2, tomate_dire
+    if not pausa:
+        if tomate_dire == 1:
+            contador_tomate_2 += 1
+            if (contador_tomate_2 % cadencia) == 0:
+                contador_tomate_2 = 0
+                tomate_dire = 0
+                zona = ((jugador.y - 31) // 58 )+ 1
+                if zona < 1:
+                    zona = 1
+                y = (58 * zona) + 1
+                tomate = Actor("tomate.png", (397, y))
+                tomate.angle = 90
+                tomate_hitbox = Actor("tomate_hitbox.png", (397, y))
+                tomate_hitbox.angle = 90
+                todo = [tomate, 1 , tomate_hitbox, 1]
+                tomates.append(todo)
+
+
+def papas_lado(cadencia):
+    global contador_papas_2
+    if not pausa:
+        contador_papas_2 += 1
+        if contador_papas_2 >= cadencia:
+            contador_papas_2 = 0
+            ataque_5.play()
+            for y in range(26, 576, 58):
+                papa = Actor("papa.png", (397 , y))
+                papa.angle = 90
+                papa_hitbox = Actor("papa_hitbox.png", (397 , y))
+                papa_hitbox.angle = 90
+                todo = [papa, "relleno", papa_hitbox, 1]
+                papas.append(todo)
  
 pgzrun.go()
