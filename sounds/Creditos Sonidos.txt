@@ -14,4 +14,5 @@
 (vine_boom) Vine-boom-sound-effect.mp3 by majetheman -- https://freesound.org/s/588654/ -- License: Creative Commons 0
 (power) Powerup2.wav by AbbasGamez -- https://freesound.org/s/411443/ -- License: Creative Commons 0
 (launch) missile-launch.ogg by jorgerosa -- https://freesound.org/s/458669/ -- License: Creative Commons 0
+(beep) Robot Beep by andersmmg -- https://freesound.org/s/523426/ -- License: Attribution 4.0
 (spellcard, attack5) made by Team Shangai Alice (ZUN)
