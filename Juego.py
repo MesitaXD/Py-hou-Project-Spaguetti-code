@@ -746,7 +746,7 @@ def update():
             if numero_pa_eliminar_vida == 1:
                 numero_vidas.pop(-1)
                 reinicio_bombas()
-            if numero_pa_eliminar_vida == 120:
+            if numero_pa_eliminar_vida == 180:
                 invencibilidad = False
                 numero_pa_eliminar_vida = 0
 
