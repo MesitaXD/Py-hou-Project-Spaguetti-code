@@ -163,9 +163,17 @@ ataque_5 = sounds.load("attack5.wav")
 ataque_5.set_volume(0.8)
 beep = sounds.load("beep.wav")
 beep.set_volume(1)
+tick = sounds.load("tick.wav")
+tick.set_volume(1)
+muerte = sounds.load("dead.wav")
+muerte.set_volume(0.2)
+bonus = sounds.load("bonus.wav")
+bonus.set_volume(0.8)
 # mas cosas
 giro_cooldown_sfx = 0
 contador_movimiento = 0
+contador_movimiento_circular = 0
+direccion_movimiento_circular = 1
 temporizador_movimiento = 0
 dif_x = 0
 dif_y = 0
@@ -210,7 +218,7 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
-fase = 1
+fase = 2
 nueva_fase = False
 contador_cajitas = 0
 cajitas_feliz = []
@@ -230,7 +238,7 @@ pruebas = []
 contador_tiempo = 0
 tiempo_limite = 30
 tiempo_normal = (30, 30, 30, 30, 30, 30, 30)
-tiempo_spellcards = (40, 35, 40, 35)
+tiempo_spellcards = (40, 45, 40, 35)
 nombre_spellcard = ""
 contador_spellcard = 0
 spellcard_x = 0
@@ -347,7 +355,7 @@ def draw():
 
 
 def update():
-    global  contador_suma, contador_tiempo, mostrar_spellcard, numero_bombas, nute, fase, spell, tiempo_limite, contador_movimiento, contador_movimiento, fps, nueva_fase, knife_contador, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global  contador_suma, spellcard_fallida, contador_tiempo, mostrar_spellcard, numero_bombas, nute, fase, spell, tiempo_limite, contador_movimiento, contador_movimiento, fps, nueva_fase, knife_contador, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
 
     gracia.pos = jugador.pos
     if build != nueva_build:
@@ -610,6 +618,7 @@ def update():
         if not pausa:
             if not len(numero_bombas) == 0:
                 if not bomba_cd:
+                    spellcard_fallida = True
                     activa = True
                     bomba_menos()
     if keyboard.e:
@@ -627,6 +636,7 @@ def update():
         
     if activa:
         if not pausa:
+            invencibilidad = True
             espera_nojoda += 1
             if build == 1:
                 espera = 300
@@ -641,6 +651,7 @@ def update():
                 bomba_cd = True
                 bomba(True) 
             else:
+                invencibilidad = False
                 bomba_cd = False
                 activa = False 
                 espera_nojoda = 0
@@ -654,7 +665,7 @@ def update():
                 velocidad_balas = 10
                 vel_build = 4
                 shift_build = 2
-                for x in range(0, 31, 30):
+                for x in range(0, 61, 30):
                     vida = Actor("vida_sprite.png", (499+x, 50))
                     numero_vidas.append(vida)
                 for x_2 in range(0, 26, 25):
@@ -671,7 +682,7 @@ def update():
                 velocidad_balas = 15
                 vel_build = 5
                 shift_build = 3
-                for x in range(0, 61, 30):
+                for x in range(0, 91, 30):
                     vida = Actor("vida_sprite.png", (499+x, 50))
                     numero_vidas.append(vida)
                 for x_2 in range(0, 51, 25):
@@ -704,12 +715,16 @@ def update():
                         if coso[2].colliderect(hitbox):
                             if not len(numero_vidas) == 0:
                                 invencibilidad = True
+                                spellcard_fallida = True
+                                muerte.play()
                             else:
                                 sys.exit()
                     else:
                         if coso[0].colliderect(hitbox):
                             if not len(numero_vidas) == 0:
                                 invencibilidad = True
+                                spellcard_fallida = True
+                                muerte.play()
                             else:
                                 sys.exit()
             for burbuja in bomba_2:
@@ -742,13 +757,14 @@ def update():
                 
     if invencibilidad:
         if not pausa:
-            numero_pa_eliminar_vida += 1
-            if numero_pa_eliminar_vida == 1:
-                numero_vidas.pop(-1)
-                reinicio_bombas()
-            if numero_pa_eliminar_vida == 180:
-                invencibilidad = False
-                numero_pa_eliminar_vida = 0
+            if not activa:
+                numero_pa_eliminar_vida += 1
+                if numero_pa_eliminar_vida == 1:
+                    numero_vidas.pop(-1)
+                    reinicio_bombas()
+                if numero_pa_eliminar_vida == 180:
+                    invencibilidad = False
+                    numero_pa_eliminar_vida = 0
 
     for bala in balas:
         if not pausa:
@@ -835,6 +851,7 @@ def update():
                     titulo_spellcard(True)
                     movimiento_avanzado(1, 0.02, 244, 90)
                     if vida_max > 65:
+                        spellcard_fallida = False
                         spellcard.play()
                         spellcard_balas()
                         vida_max = 64
@@ -851,6 +868,8 @@ def update():
                         ald()
                         bonus_score(True)
                 elif vida_max <= 0:
+                    ran_ran_ru_sfx.stop()
+                    bonus.play()
                     bonus_score(False)
                     titulo_spellcard(False)
                     tiempo_limite = tiempo_normal[fase]
@@ -868,25 +887,30 @@ def update():
                     tiempo_contador(1)
                     bala_spin(6)
                     rotacion_bala_personalizada(4, ronald.pos, 4, "bala", -5, 0, 8)
-                    movimiento_avanzado(0, 0.02, 0, 0)
+                    movimiento_avanzado(0, 0.03, 0, 0)
                     daño_golpe_cambio(1)
                 elif 0 < vida_max <= 70:
                     titulo_spellcard(True)
                     if vida_max > 65:
+                        temporizador_movimiento
+                        spellcard_fallida = False
                         spellcard.play()
                         spellcard_balas()
                         vida_max = 64
                     if spell:
+                        movimiento_avanzado(1, 0.03, 444, 300)
                         contador_tiempo = 0
                         spell = spellcard_ronald(spell)
                         daño = -10
                         tiempo_limite = tiempo_spellcards[fase-1]
                     if not spell:
+                        movimiento_circular((244, 300), 200, 270, 2, 1)
                         bonus_score(True)
                         tiempo_contador(0)
-                        daño_golpe_cambio(5)
-                        cajitas(30)
+                        daño_golpe_cambio(4)
+                        cajitas(150)
                 elif vida_max <= 0:
+                    bonus.play()
                     bonus_score(False)
                     titulo_spellcard(False)
                     tiempo_limite = tiempo_normal[fase]
@@ -908,6 +932,7 @@ def update():
                 elif 0 < vida_max <= 70:
                     titulo_spellcard(True)
                     if vida_max > 65:
+                        spellcard_fallida = False
                         spellcard.play()
                         spellcard_balas()
                         vida_max = 64
@@ -924,6 +949,7 @@ def update():
                         tomate_caida(120)
                         tomate_lado(120)
                 elif vida_max <= 0:
+                    bonus.play()
                     bonus_score(False)
                     titulo_spellcard(False)
                     tiempo_limite = tiempo_normal[fase]
@@ -944,6 +970,7 @@ def update():
                     daño_golpe_cambio(0.8)
                 elif 0 < vida_max <= 70:
                     if vida_max > 65:
+                        spellcard_fallida = False
                         spellcard.play()
                         spellcard_balas()
                         vida_max = 64
@@ -955,6 +982,7 @@ def update():
                     if not spell:
                         daño_golpe_cambio(3)
                 elif vida_max <= 0:
+                    bonus.play()
                     bonus_score(False)
                     titulo_spellcard(False)
                     tiempo_limite = tiempo_normal[fase]
@@ -1146,19 +1174,39 @@ def update():
                 ald_bala.remove(al)
     for cajas in cajitas_feliz:
         if not pausa:
-            dist_y =  cajas[1] - cajas[2].y 
-            if 0 < dist_y <= 30:
-                cajas[0].y += dist_y/10 + 0.1
-                cajas[2].y += dist_y/10 + 0.1
-            elif dist_y > 30:
-                cajas[0].y += 3
-                cajas[2].y += 3
+            dist_x = cajas[1][0] - cajas[2].x
+            dist_y =  cajas[1][1] - cajas[2].y 
+            if dist_y < 0:
+                multiy = -1
+            elif dist_y > 0:
+                multiy = 1
             else:
-                cajas[0].y = cajas[1]
-                cajas[2].y = cajas[1]
-                rotacion_bala_personalizada(6, cajas[2].pos, 20, "nugget", 0, cajas[3], 4)
+                multiy = 0
+            if dist_x < 0:
+                multix = -1
+            elif dist_x > 0:
+                multix = 1
+            else:
+                multix = 0
+            #print(cajas[2].pos, cajas[1], cajas[4], (dist_x, dist_y), (0 < abs(dist_y) <= 30 and 0 < abs(dist_x) <= 30), (abs(dist_y) > 30 or abs(dist_x) > 30), (abs(dist_y) < 0.8 and abs(dist_x) < 0.8))
+            if (0 <= abs(dist_y) <= 30 and 0 <= abs(dist_x) <= 30) and not (abs(dist_y) < 0.8 and abs(dist_x) < 0.8):
+                cajas[0].y += dist_y/10 + 0.11*multiy
+                cajas[2].y += dist_y/10 + 0.11*multiy
+                cajas[0].x += dist_x/10 + 0.11*multix
+                cajas[2].x += dist_x/10 + 0.11*multix
+            elif abs(dist_y) > 30 or abs(dist_x) > 30:
+                cajas[0].y -= cajas[4][1]/80
+                cajas[2].y -= cajas[4][1]/80
+                cajas[0].x -= cajas[4][0]/80
+                cajas[2].x -= cajas[4][0]/80
+            elif abs(dist_y) < 0.8 and abs(dist_x) < 0.8:
+                cajas[0].y = cajas[1][1]
+                cajas[2].y = cajas[1][1]
+                cajas[0].x = cajas[1][0]
+                cajas[2].x = cajas[1][0]
+                rotacion_bala_personalizada(1, cajas[2].pos, 3, "nugget", -13, cajas[3], 7)
                 cajas[3] += 1
-                if cajas[3] >=  20:
+                if cajas[3] >=  72:
                     cajitas_feliz.remove(cajas)
     for punto in puntos:
         if not pausa:
@@ -1168,6 +1216,7 @@ def update():
             else:
                 teledirigir_balas(punto[0], 10 , jugador)
             if punto[0].colliderect(jugador):
+                tick.play()
                 puntuacion += 100
                 puntos.remove(punto)
     for papa in papas:
@@ -1497,44 +1546,68 @@ def movimiento_avanzado(cooldown, mov, x_fija, y_fija):
                 contador_movimiento = randint(150, 300)
         else:
             contador_movimiento = cooldown
-
-        if x_fija != 0 or y_fija != 0:
+        #print(not((x_fija != 0 or y_fija != 0) and (temporizador_movimiento > 1)))
+        # print((temporizador_movimiento == 4), not (temporizador_movimiento == 4))
+        if  (x_fija != 0 or y_fija != 0):
             x = x_fija
             y = y_fija
+            if not temporizador_movimiento == 4:
+                dif_x = (x - ronald.x)
+                dif_y = (y - ronald.y)
+                temporizador_movimiento = 4
+                contador_movimiento = 1
         if temporizador_movimiento <= contador_movimiento:
             temporizador_movimiento += 1
             if x == 0 and y == 0:
                 x = randint(42, 439)
                 y = randint(34,160)
-            dif_x = round(x - ronald.x)
-            dif_y = round(y - ronald.y)
+                dif_x = round(x - ronald.x)
+                dif_y = round(y - ronald.y)
 
         else:
+            #print((x, round(ronald.x), dif_x), (y, round(ronald.y), dif_y), (validacion_1, validacion_2))
             if dif_x < 0:
-                if not ronald.x <= x:
+                if not round(ronald.x) <= x:
                     ronald.x += mov*dif_x
                 else:
                     validacion_1 = True    
             elif dif_x > 0:
-                if not ronald.x >= x:
+                if not round(ronald.x) >= x:
                     ronald.x += mov*dif_x
                 else:
                     validacion_1 = True
             else:
                 validacion_1 = True
             if dif_y < 0:
-                if not ronald.y <= y:
+                if not round(ronald.y) <= y:
                     ronald.y += mov*dif_y
                 else:
                     validacion_2 = True
             elif dif_y > 0:
-                if not ronald.y >= y:
+                if not round(ronald.y) >= y:
                     ronald.y += mov*dif_y
                 else:
                     validacion_2 = True
             else:
                 validacion_2 = True
-    
+
+def movimiento_circular(centro, x_max, y_max, velocidad, vueltas):
+    global contador_movimiento_circular, direccion_movimiento_circular
+    if not pausa:
+        # contador_movimiento_circular += 1
+        #print(contador_movimiento_circular, contador_movimiento_circular >= (contador_movimiento_circular*vueltas - 30*vueltas))
+        if 360>= contador_movimiento_circular >= (360*vueltas - 30*vueltas):
+            contador_movimiento_circular += (30-(contador_movimiento_circular-330*vueltas))/30 +0.05
+        elif 360*vueltas + 360*30 >= contador_movimiento_circular >= 360*vueltas:
+            contador_movimiento_circular += 360
+        elif contador_movimiento_circular >= 360*vueltas + 360*30:
+            direccion_movimiento_circular = -direccion_movimiento_circular
+            contador_movimiento_circular = 0
+        else:
+            contador_movimiento_circular += 1
+        ronald.x = centro[0] + x_max * math.cos(math.radians(contador_movimiento_circular*velocidad))
+        ronald.y = centro[1] - y_max * math.sin(math.radians(contador_movimiento_circular*velocidad)) * direccion_movimiento_circular
+
 def cambio_bala(comprobante):
     global poder_bala, contador_cambio_bala, contador_extra, puntuacion
     if build == 1:
@@ -1851,13 +1924,17 @@ def cajitas(cadencia):
         contador_cajitas += 1
         if contador_cajitas >= cadencia:
             contador_cajitas = 0
-            x = randint(30, 459)
-            y_limit = randint(250, 400)
+            x = jugador.x
+            y = jugador.y
+            x_dif = round(ronald.x - jugador.x)
+            y_dif = round(ronald.y - jugador.y)
+            coord = (x, y)
+            coord_dif = (x_dif, y_dif)
             y = 20
-            cajita = Actor("cajita_feliz.png", (x, y))
-            cajita_hitbox = Actor("cajita_hitbox", (x, y))
+            cajita = Actor("cajita_feliz.png", ronald.pos)
+            cajita_hitbox = Actor("cajita_hitbox", ronald.pos)
             contador = 0
-            todo = [cajita, y_limit, cajita_hitbox, contador]
+            todo = [cajita, coord, cajita_hitbox, contador, coord_dif]
             cajitas_feliz.append(todo)
 
 def puntos_spellcard(lista):
@@ -1981,14 +2058,17 @@ def titulo_spellcard(Comprobante):
             spellcard_transparencia = 0
 
 def bonus_score(comprobante):
-    global contador_bonus, spellcard_bonus
+    global contador_bonus, spellcard_bonus, spellcard_fallida
     if not pausa:
         if comprobante:
-            valor = lista_bonus[fase-1]
-            contador_bonus += 1
-            limite_bonus = (tiempo_spellcards[fase-1]+1) * 60
-            porcentaje = (contador_bonus/limite_bonus) / 2
-            spellcard_bonus = int(valor - valor*porcentaje)
+            if not spellcard_fallida:
+                valor = lista_bonus[fase-1]
+                contador_bonus += 1
+                limite_bonus = (tiempo_spellcards[fase-1]+1) * 60
+                porcentaje = (contador_bonus/limite_bonus) / 2
+                spellcard_bonus = int(valor - valor*porcentaje)
+            else:
+                spellcard_bonus = "Fallido"
         else:
             contador_bonus = -1
             limite_bonus = 0
