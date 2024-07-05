@@ -38,7 +38,7 @@ import pgzrun
 from pgzhelper import *
 import math
 import sys
-from random import randint
+from random import randint, choice
 WIDTH = 800
 HEIGHT = 600
 activa = False
@@ -71,6 +71,7 @@ angulo_aumento = 0
 fondito = "fondo_menu.png"  
 
 jugador = Actor('jugador.jpg', (244, 530))
+cubo_dialogo = Actor('dialogo_cubo.png', (244, 631)) #(244, 510)
 hitbox = Actor('hitbox.png', (244, 530))
 gracia = Actor('graze_semi.png', (jugador.x, jugador.y))
 menu_pausa = Actor('pausa.png', (-163, 300))
@@ -107,6 +108,7 @@ aleatorio = 0
 contador_enemigo_2 = 0
 contador_enemigo_3 = 0
 numero_2 = 0
+numero_3 = 0
 vida_max = 320 #320
 numero_vidas = []
 numero_bombas = []
@@ -119,9 +121,6 @@ diferencia_x = 0
 diferencia_y = 0
 hipotenusa = 0
 # Sfx
-musica = sounds.load("ronald.mp3")
-musica.play(-1)
-musica.set_volume(0.1)
 bala_1_sfx = sounds.load("disparo.wav")
 bala_1_sfx.set_volume(0.1)
 bala_2_sfx = sounds.load("finger_snap.wav")
@@ -218,7 +217,7 @@ misil_bombardeo = []
 super_knifes = False
 cuchillos = []
 knife_contador = 0
-fase = 1
+fase = 8  #-70
 nueva_fase = False
 contador_cajitas = 0
 cajitas_feliz = []
@@ -233,7 +232,11 @@ tomate_dire = 0
 tomates = []
 nute = True
 wasa = 0
-todas_las_balas_enemigas = [tomates, bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio, cajitas_feliz, papas]
+Ripp = []
+contador_rip_1 = 0
+contador_rip_2 = 0
+contador_rip_3 = 0
+todas_las_balas_enemigas = [tomates, bala_circular, circulos_wa, ran_bala, ron_bala, ald_bala, ran_ran_ru_inicio, cajitas_feliz, papas, Ripp]
 pruebas = []
 contador_tiempo = 0
 tiempo_limite = 30
@@ -255,10 +258,15 @@ bonus_visible_2 = 0
 spellcard_obtenido = ""
 spellcard_fallida = False
 mostrar_spellcard = False
-lista_spellcards = ('McRoll: "Ran Ran Ru!!"', 'house special: "McNuggets buffet"', 'Fried: French With some Tomatoes')
+dialogo_contador = 0
+numero_dialogo = -1
+dialogos = None 
+dialogo = "None"
+dialogo_op = 0
+color_dialogo = None
+lista_spellcards = ('McRoll: "Ran Ran Ru!!"', 'house special: "McNuggets buffet"', 'Fried: French With some Tomatoes', "Ripples Of 495 Menus")
 def draw():
     rango_visible.draw()
-
 
     if bomba_print:
         if build == 1:
@@ -287,7 +295,8 @@ def draw():
         enemigo[0].draw()
     for cosa in bala_circular:
         cosa[0].draw()
-
+    for rip in Ripp:
+        rip[0].draw()
     for cosa in circulos_wa:
         cosa[0].draw()
     for ran in ran_ran_ru_inicio:
@@ -322,7 +331,12 @@ def draw():
         misi[0].draw()
 
     imagen.draw()
-
+    cubo_dialogo.draw()
+    screen.draw.text((f"{dialogo}"), fontsize=22, fontname="jaini_regular.ttf", color="white", topleft=(57, 458), alpha = dialogo_op, owidth=1, ocolor=color_dialogo, width=374)
+    screen.draw.text((f"{nombre_spellcard}"), fontsize=spellcard_tamaño, fontname="jaini_regular.ttf", color="white", midright=(spellcard_x, spellcard_y), alpha = spellcard_transparencia, owidth=1, ocolor="black")
+    screen.draw.text((f"Bonus   {spellcard_bonus}"), fontsize=22 , fontname="jaini_regular.ttf", color="white", midleft=(spellcard_x - len(nombre_spellcard)*8.75, 84), alpha = spellcard_bonus_transparencia, owidth=1, ocolor="black")
+    screen.draw.text((f"{spellcard_obtenido}"), fontsize=40 , fontname="jaini_regular.ttf", color="white", center=(244, 90), alpha = bonus_visible, owidth=1, ocolor="black")
+    screen.draw.text((f"+{spellcard_bonus}"), fontsize=35 , fontname="jaini_regular.ttf", color="white", center=(244, 130), alpha = bonus_visible_2, owidth=1, ocolor="black")
     menu_pausa.draw()
     screen.blit(fondito, (0, 0))
 
@@ -330,6 +344,7 @@ def draw():
         vida.draw()
     for bomba in numero_bombas:
         bomba.draw()
+
     screen.draw.text(str(gracia_numero), (499, 120), color="black", fontname="jaini_regular.ttf", fontsize = 30)
     screen.draw.text(str(puntuacion), (629, 60), color="black", fontname="jaini_regular.ttf", fontsize = 50)
     screen.draw.rect(vida_verde, (0, 255, 0))
@@ -346,22 +361,48 @@ def draw():
     screen.draw.text(str(round(reloj.get_fps(), 1)), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-60))
     screen.draw.text((f"x {jugador.x}  y {jugador.y}"), fontsize=50, fontname="jaini_regular.ttf", color="white", topright=(WIDTH-50, HEIGHT-100))
     screen.draw.text((f"{tiempo_limite}"), fontsize=40, fontname="jaini_regular.ttf", color="white", topright=(462, 4), owidth=1, ocolor="orange")
-    screen.draw.text((f"{nombre_spellcard}"), fontsize=spellcard_tamaño, fontname="jaini_regular.ttf", color="white", midright=(spellcard_x, spellcard_y), alpha = spellcard_transparencia, owidth=1, ocolor="black")
-    screen.draw.text((f"Bonus   {spellcard_bonus}"), fontsize=22 , fontname="jaini_regular.ttf", color="white", midleft=(spellcard_x - len(nombre_spellcard)*8.75, 84), alpha = spellcard_bonus_transparencia, owidth=1, ocolor="black")
-    screen.draw.text((f"{spellcard_obtenido}"), fontsize=40 , fontname="jaini_regular.ttf", color="white", center=(244, 90), alpha = bonus_visible, owidth=1, ocolor="black")
-    screen.draw.text((f"+{spellcard_bonus}"), fontsize=35 , fontname="jaini_regular.ttf", color="white", center=(244, 130), alpha = bonus_visible_2, owidth=1, ocolor="black")
-    for lista in todas_las_balas_enemigas:
-        for coso in lista:
-            screen.draw.rect(coso[2].get_rect(), (255,0,0))
-    #screen.draw.rect(hitbox.get_rect(), (255,0,0))
+    #for lista in todas_las_balas_enemigas:
+     #   for coso in lista:
+      #       screen.draw.rect(coso[2].get_rect(), (255,0,0))
+    screen.draw.rect(hitbox.get_rect(), (255,0,0))
 
 
 def update():
-    global  contador_suma, spellcard_fallida, contador_tiempo, mostrar_spellcard, numero_bombas, nute, fase, spell, tiempo_limite, contador_movimiento, contador_movimiento, fps, nueva_fase, knife_contador, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build, fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño, daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa, focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba, segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala
+    global  contador_suma, spellcard_fallida, numero_dialogo, dialogo_contador, contador_tiempo, mostrar_spellcard, numero_bombas, nute, fase, spell, tiempo_limite
+    global contador_movimiento, contador_movimiento, fps, nueva_fase, knife_contador, contador_lluvia, contador_bombardeo, vel_build, shift_build, ultima_vez, build
+    global fps, balas, espera, velocidad_balas, espera_extra, constante_pausa, rebote_pausa, escape_cooldown, vida_max, lista_graciados, gracia_numero, vida_verde, daño 
+    global daño_golpe, poder_bala, puntuacion, espera_nojoda, activa, suma_1, suma_2, bomba_cd, bomba_y_vida, bomba, numero_de_bombas, invencibilidad, primera_vez, pausa
+    global focus, bomba_print, angulo_aumento, primera_vez_rotacion, posicion_x, posicion_y, diferencia_x, diferencia_y, hipotenusa, giro_cooldown_sfx, primera_bomba
+    global segundo, aumento_nuclear, bomba_activada, contador_explosion, numero_pa_eliminar_vida, espera_bala, dialogos
+    
 
-    gracia.pos = jugador.pos
     if build != nueva_build:
         build = nueva_build
+    if dialogos == None:
+        if build == 1:
+            dialogos = (('Hay un dicho que me encanta: "El momento donde una estrella más brilla es cuando mueren. En ese caso eso aplicará para mí algún día.', 1),
+    ('O tal vez ese día no esté tan lejos de lo esperado. O mi utopía', 1), ('Donde el juez sentencia su veredicto: "Te condeno a..." No escuché ninguna palabra aparte de esas.', 1),
+    ('Te preguntarás cuál fue el veredicto, yo creo que era el olvido.', 1), ('Igual que una vela, una vez se prende tiene una cuenta regresiva antes de derretirse y dejar de iluminar.', 1),
+    ('Yo soy una vela, mi propósito es iluminar, sacrificándome en el proceso', 1), ('Y mi llama son nada más que mis recuerdos, mi convicción.', 1),
+    ('Prepara el escenario, hoy posiblemente logre mi objetivo de ser más brillante que el sol.', 1), ('RAN RAN RU!!', 0), ('...', 1), 
+    ('Como que mi convicción ha disminuido ante tal enemigo, al parecer mi día va a demorar más', 1), ('Qué hamburguesa más rara...', 0), 
+    ('De todas maneras, aún deberías servir para ser lanzado, ¿quién se supone que eres?', 0))
+        elif build == 2:
+            dialogos =  (("Mmh, este día es extraño, primero estamos normales, luego aparece un portal hacia este lugar extraño que huele a aceite quemado", 1), 
+    ("De ese portal salen un montón de cosas de comida rápida, hamburguesas, papas, nuggets, tomates...", 1), ("Estoy confundido, fui enviado a ver qué había pasado pero... No veo nada, quizá esto no tiene causante y fue una fisura?", 1), 
+    ("Quiero decir, una fisura tampoco suena tan mal...", 1), ("RAN RAN RU!", 0), ("...", 1), ("¡RONALD McDONALD?!", 1), ("Ok, ahora me emocioné jeje, ¿qué se supone que hace Ronald McDonald en este lugar?", 1),
+    ("La pregunta sería, ¿qué haces TÚ en la casa de Ronald, no recuerdo haberte dejado entrar...", 0), ("Ah bueno, quizá será porque no lo hiciste jeje, un portal se abrió por... Mi casa, y de ahí salen cosas que están causando estragos", 1),
+    ("Ah... Espera, ¿entonces un niño entró a un portal desconocido del cual salen cosas peligrosas, solo?", 0), ("Bueno, si lo pones de tal forma... No es la primera vez que vengo a lugares así, no te confíes, payaso", 1),
+    ("No tengo idea de quién seas, pero tienes agallas, niño, veamos si no abres más la boca de lo que puedes comer", 0))
+        elif build == 3:
+            la_lista = ((("...", 1), ("Hola! Soy un basado!", 0), ("Ohhh, ere un basado?", 1), ("Si! Un basado!", 0), ("BAS-A-DO RMIR", 1)), (("...", 1), ("Adios!!", 0), ("Ah, Adios?!", 1), ("Sii! Adios!", 0), ("Pues adios.", 1), ("... Ay no mames, funciono", 0), ("Adiosito vas a ver!!", 1)), (("...", 1), ("Hola! Soy un payaso!", 0), ("Ah enserio? Y tu conoces el tema?", 1), ("Uh? Cual tema?", 0), ("El Tema-dreo!", 1)))
+            dialogos = choice(la_lista)
+    if not pausa:
+        if fase < 0:
+            fase += 1
+        if fase == -1:
+            dialogo_contador = 1
+    
     if keyboard.p:
         toggle_fullscreen()
         pausa = True
@@ -384,10 +425,19 @@ def update():
         mover_jugador(direccion, vel_build, shift_build)
     if keyboard.q:
         spawn_enemigos(True)
-
+    
+    if keyboard.LCTRL:
+        if fase == 0:
+            if dialogo_contador == 0:
+                dialogo_contador = 1
+            
     if (keyboard.z):
-        disparo()
-        cambio_bala(True)
+        if 1 <= fase:
+            disparo()
+            cambio_bala(True)
+        elif fase == 0:
+            if dialogo_contador == 0:
+                dialogo_contador += 1
     else:
         cambio_bala(False)
 
@@ -618,12 +668,14 @@ def update():
     
     if keyboard.x:
         if not pausa:
-            if not len(numero_bombas) == 0:
-                if not bomba_cd:
-                    numero_pa_eliminar_vida = 0 
-                    spellcard_fallida = True
-                    activa = True
-                    bomba_menos()
+            if fase > 0:
+                if not len(numero_bombas) == 0:
+                    if not bomba_cd:
+                        numero_pa_eliminar_vida = 0 
+                        spellcard_fallida = True
+                        activa = True
+                        spellcard.play()
+                        bomba_menos()
     if keyboard.e:
         titulo_spellcard(True)
     else:
@@ -713,22 +765,14 @@ def update():
     for listas in todas_las_balas_enemigas:
         for coso in listas:
             if invencibilidad == False:
-                if listas != ran_ran_ru_inicio and listas != ran_bala:
-                    if coso[2].colliderect(hitbox):
-                        if not len(numero_vidas) == 0:
-                            invencibilidad = True
-                            spellcard_fallida = True
-                            muerte.play()
-                        else:
-                            sys.exit()
-                else:
-                    if coso[0].colliderect(hitbox):
-                        if not len(numero_vidas) == 0:
-                            invencibilidad = True
-                            spellcard_fallida = True
-                            muerte.play()
-                        else:
-                            sys.exit()
+                if coso[2].obb_collideobb(hitbox):
+                    if not len(numero_vidas) == 0:
+                        invencibilidad = True
+                        spellcard_fallida = True
+                        muerte.play()
+                    else:
+                        sys.exit()
+
             for burbuja in bomba_2:
                 if burbuja[0].colliderect(coso[0]):
                     if coso in listas:
@@ -738,7 +782,7 @@ def update():
                         if burbuja[1] < 1800:
                             poder_sfx.play()
 
-            if bomba_1.colliderect(coso[0]):
+            if bomba_1.obb_collideobb(coso[0]):
                 if coso in listas:
                     listas.remove(coso)
                     puntuacion += 100
@@ -762,7 +806,6 @@ def update():
             if not activa:
                 numero_pa_eliminar_vida += 1
                 if numero_pa_eliminar_vida == 1:
-                    print("A")
                     numero_vidas.pop(-1)
                     reinicio_bombas()
                 if numero_pa_eliminar_vida == 180:
@@ -815,11 +858,12 @@ def update():
                 if tupla[0] in balas:
                     balas.remove(tupla[0])
                     balas_dispersadas(cordi)
+                    dispersion_sfx.stop()
                     dispersion_sfx.play()
                 if tupla in dispersion:
                     dispersion.remove(tupla)
 
-    for tele in teledirigidas:
+    for tele in teledirigidas: 
         if not pausa:
             teledirigir_balas(tele, 6, ronald)
             if tele.colliderect(ronald):
@@ -837,6 +881,7 @@ def update():
             elif misi[1] == 3:
                 daño += 20
             puntuacion += 100
+            misil_explosion.stop()
             misil_explosion.play()
             misiles.remove(misi)
 
@@ -859,6 +904,29 @@ def update():
     if mostrar_spellcard:
         agregar_bonus()
 
+    if not pausa:
+        if fase < 1:
+            if not numero_dialogo < len(dialogos):
+                cubo_dialogo_mov(0)
+            else:
+                cubo_dialogo_mov(1)
+        if dialogo_contador == 1:
+            dialogo_contador += 1
+            if keyboard.LCTRL:
+                dialogo_contador = 90
+            numero_dialogo += 1
+            if not numero_dialogo < len(dialogos):
+                clock.schedule(musica_play, 1)
+                clock.schedule(fase_inicio, 0.5)
+                dialogo_contador = 0
+                dialogo_a_mostrar("end")
+        elif 100 > dialogo_contador > 1:
+            dialogo_a_mostrar(dialogos[numero_dialogo])
+            # print(dialogos[numero_dialogo])
+            dialogo_contador += 1
+        elif dialogo_contador >= 100:
+            dialogo_contador = 0
+    
     if not pausa:
         if fase == 1:
             if not nueva_fase:
@@ -958,11 +1026,14 @@ def update():
                         spellcard_balas()
                         vida_max = 64
                     if spell:
+                        movimiento_avanzado(1, 0.03, 244, 90)
                         contador_tiempo = 0
                         tiempo_limite = tiempo_spellcards[fase-1]
                         spell = spellcard_ronald(spell)
                         daño = -40
                     if not spell:
+                        movimiento_avanzado(180, 0.01, 0, 0)
+                        rotacion_bala_personalizada(30, ronald.pos, 15, "papa", 3, 0, 5)
                         bonus_score(True)
                         daño_golpe_cambio(3)
                         papas_caida(30)
@@ -985,8 +1056,10 @@ def update():
         elif fase == 4:
             if not nueva_fase:
                 if vida_max > 70:
-                    rotacion_bala_personalizada(8, ronald.pos, 14, "bala", 3, 0, 6)
-                    rotacion_bala_personalizada_2(8, ronald.pos, 14, "bala", 6, 0, 3)
+                    tiempo_contador(1)
+                    #rotacion_bala_personalizada(8, ronald.pos, 14, "bala", 3, 0, 6)
+                    #rotacion_bala_personalizada_2(8, ronald.pos, 14, "bala", 6, 0, 3)
+                    rotacion_bala_personalizada_dirigida(20, ronald.pos, 8, "bala", 0, 7, jugador, ronald, 6, 5)
                     movimiento_avanzado(0, 0.02, 0, 0)
                     daño_golpe_cambio(0.8)
                 elif 0 < vida_max <= 70:
@@ -1001,6 +1074,9 @@ def update():
                         spell = spellcard_ronald(spell)
                         daño = -40
                     if not spell:
+                        #ripples(50*(3-(vida_max/160)), 88, 1.5, "nugget", ronald.pos, jugador, ronald, 1)
+                        #ripples_2(180, 36, 3, "papa", ronald.pos, jugador, ronald, 0)
+                        #ripples_3(60, 4, 3, "tomate", ronald.pos, jugador, ronald, 2)
                         daño_golpe_cambio(3)
                 elif vida_max <= 0:
                     bonus.play()
@@ -1015,6 +1091,27 @@ def update():
                 mostrar_spellcard = True
                 cambio_fase()
                 spellcard_balas()
+        elif fase == 8:
+            if vida_max > 0:
+                if vida_max > 319:
+                    vida_max = 318
+                    spellcard_fallida = False
+                    spellcard.play()
+                    spellcard_balas()
+                if spell:
+                    spell = spellcard_ronald(spell)
+                    daño = 0
+                if not spell:
+                    daño_golpe_cambio(3)
+                    mult = ((vida_max/320) + 1 )
+                    mult_vel = ((-3/640)*vida_max)
+                    ripples(int(80*mult), 54, mult_vel + 2.5, "nugget", ronald.pos, jugador, ronald, 1)
+                    ripples_2(int(90*mult), 27, mult_vel + 3, "papa", ronald.pos, jugador, ronald, 0)
+                    ripples_3(int(110*mult), 6, mult_vel + 4, "tomate", ronald.pos, jugador, ronald, 2)
+                    # print(contador_rip_1, contador_rip_2, contador_rip_3)
+            else:
+                spellcard_balas()
+            
     
     for mini in dispersados:
         if not pausa:
@@ -1041,28 +1138,39 @@ def update():
             cosa[2].y += cosa[3] * cosa[1][1]
             cosa[2].x += cosa[3] * cosa[1][0]
 
-    for enemigo in enemigos:     
-        enemigo[0].y += 5 * enemigo[1][1]
-        enemigo[0].x += 5 *enemigo[1][0]
+    for rip in Ripp:
+        if not pausa:
+            if not rip[2].colliderect(rango_visible):
+                Ripp.remove(rip)
+            rip[0].y += rip[3] * rip[1][1]
+            rip[0].x += rip[3] * rip[1][0]
+            rip[2].y += rip[3] * rip[1][1]
+            rip[2].x += rip[3] * rip[1][0]
+            if rip[2].x < 24:
+                if rip[4] > 0:
+                    rip[1][0] = -rip[1][0]
+                    rip[4] -= 1
+                    angle = int(math.degrees(math.atan2(rip[1][1], rip[1][0])))
+                    rip[0].angle = -angle -90
+            if rip[2].x > 465:
+                if rip[4] > 0:
+                    rip[1][0] = -rip[1][0]
+                    rip[4] -= 1
+                    angle = int(math.degrees(math.atan2(rip[1][1], rip[1][0])))
+                    rip[0].angle = -angle -90
+            if rip[2].y < 18:
+                if rip[4] > 0:
+                    rip[1][1] = -rip[1][1]
+                    rip[4] -= 1
+                    angle = int(math.degrees(math.atan2(rip[1][1], rip[1][0])))
+                    rip[0].angle = -angle -90
+            #if rip[2].y > 582:
+             #   if rip[4] > 0:
+              #      rip[1][1] = -rip[1][1]
+               #     rip[4] -= 1
+                #    angle = int(math.degrees(math.atan2(rip[1][1], rip[1][0])))
+                 #   rip[0].angle = -angle -90
 
-        for bala in balas:
-            if enemigo[0].colliderect(bala):
-                if enemigo in enemigos:
-                    enemigos.remove(enemigo)
-                    balas.remove(bala)
-                    
-        if (enemigo[0].y <= 26):
-            if enemigo in enemigos:
-                    enemigos.remove(enemigo)
-        if (enemigo[0].x <= 31):
-            if enemigo in enemigos:
-                    enemigos.remove(enemigo)
-        if (enemigo[0].y >= 574):
-            if enemigo in enemigos:
-                    enemigos.remove(enemigo)
-        if (enemigo[0].x >= 379):
-            if enemigo in enemigos:
-                    enemigos.remove(enemigo)
 
     for coso in bala_circular:  
         if not coso[0].colliderect(rango_visible):
@@ -1179,8 +1287,10 @@ def update():
 
     if pausa:
         pygame.mixer.pause()
+        music.pause()
     else:
         pygame.mixer.unpause()
+        music.unpause()
 
     for ro in ron_bala:
         if not pausa:
@@ -1288,27 +1398,35 @@ def mover_jugador(direccion, distancia, shift):
         if (direccion == 'up'):
             jugador.y -= distancia
             hitbox.y -= distancia
+            gracia.y -= distancia
         if (direccion == 'right'):
             jugador.x += distancia
             hitbox.x += distancia
+            gracia.x += distancia
         if (direccion == 'down'):
             jugador.y += distancia
             hitbox.y += distancia
+            gracia.y += distancia
         if (direccion == 'left'):
             jugador.x -= distancia
             hitbox.x -= distancia
+            gracia.x -= distancia
     if (jugador.y <= 26):
         jugador.y = 26
         hitbox.y = 26
+        gracia.y = 26
     if (jugador.x <= 31):
         jugador.x = 31
         hitbox.x = 31
+        gracia.x = 31
     if (jugador.y >= 574):
         jugador.y = 574
         hitbox.y = 574
+        gracia.y = 574
     if (jugador.x >= 458):
         jugador.x = 458
         hitbox.x = 458
+        gracia.x = 458
 def disparo():
     global contador, contador_extra, poder_bala, puntuacion, espera_bala, espera_extra
     if build == 1:
@@ -1434,17 +1552,18 @@ def bala_spin(cadencia):
 
 def bala_circulos(cadencia):
     global numero_2
-    global contador_enemigo_3
+    global contador_enemigo_2
     if not pausa:
-        contador_enemigo_3 += 1
-        if contador_enemigo_3 >= cadencia:
-            contador_enemigo_3 = 0
+        contador_enemigo_2 += 1
+        if contador_enemigo_2 >= cadencia:
+            contador_enemigo_2 = 0
             for a in range(18):
                 numero_2 += 20
                 y = math.sin(math.radians(numero_2))
                 x = math.cos(math.radians(numero_2))
                 coord = (x, y)
                 bala = Actor("bala.png", ronald.pos)
+                bala.angle = -angle -90
                 hitbox_bala = Actor("bala_hitbox.png", ronald.pos)
                 todo = (bala, coord, hitbox_bala, 5)
                 circulos_wa.append(todo)
@@ -1452,14 +1571,14 @@ def bala_circulos(cadencia):
 
 def rotacion_bala_personalizada(cadencia, posicion, rango, sprite, variacion, contador_personalizado, velocidad_personalizada):
     global numero_2
-    global contador_enemigo_3
+    global contador_enemigo_2
     if not pausa:
         if contador_personalizado == 0:
-            contador_enemigo_3 += 1
+            contador_enemigo_2 += 1
         else:
-            contador_enemigo_3 = contador_personalizado
-        if (contador_enemigo_3 % cadencia) == 0:
-            contador_enemigo_3 = 0
+            contador_enemigo_2 = contador_personalizado
+        if (contador_enemigo_2 % cadencia) == 0:
+            contador_enemigo_2 = 0
             for a in range(rango):
                 numero_2 += 360/rango
                 y = math.sin(math.radians(numero_2))
@@ -1467,7 +1586,7 @@ def rotacion_bala_personalizada(cadencia, posicion, rango, sprite, variacion, co
                 coord = (x, y)
                 angle = int(math.degrees(math.atan2(y, x)))
                 bala = Actor(sprite + ".png", posicion)
-                bala.angle = - angle
+                bala.angle = -angle -90
                 hitbox_bala = Actor(sprite+"_hitbox.png", posicion)
                 todo = (bala, coord, hitbox_bala, velocidad_personalizada)
                 circulos_wa.append(todo)
@@ -1495,6 +1614,32 @@ def rotacion_bala_personalizada_2(cadencia, posicion, rango, sprite, variacion, 
                 todo = (bala, coord, hitbox_bala, velocidad_personalizada)
                 circulos_wa.append(todo)
             numero += variacion
+def rotacion_bala_personalizada_dirigida(cadencia, posicion, rango, sprite, contador_personalizado, velocidad_personalizada, objetivo, objeto, constante_decrecion, numero_decrecion):
+    global numero_3
+    global contador_enemigo_3
+    if not pausa:
+        if contador_personalizado == 0:
+            contador_enemigo_3 += 1
+        else:
+            contador_enemigo_3 = contador_personalizado
+        if (contador_enemigo_3 % cadencia) == 0:
+            contador_enemigo_3 = 0
+            tele_x = objetivo.x - objeto.x
+            tele_y = objetivo.y - objeto.y
+            numero_3 = math.degrees(math.atan2(tele_y, tele_x))
+            for a in range(rango):
+                numero_3 += 360/rango
+                for numero_actual in range(numero_decrecion):
+                    vel_decrecion = constante_decrecion/(constante_decrecion+numero_actual)
+                    y = math.sin(math.radians(numero_3)) * vel_decrecion
+                    x = math.cos(math.radians(numero_3)) * vel_decrecion
+                    coord = (x, y)
+                    angle = int(math.degrees(math.atan2(y, x)))
+                    bala = Actor(sprite + ".png", posicion)
+                    bala.angle = - angle
+                    hitbox_bala = Actor(sprite+"_hitbox.png", posicion)
+                    todo = (bala, coord, hitbox_bala, velocidad_personalizada)
+                    circulos_wa.append(todo)
 
 def bomba(comprobante):
     global rotation, super_knifes, bubble, rain, nuclear, bombardeo
@@ -2163,5 +2308,122 @@ def agregar_bonus():
             bonus_visible = False
             bonus_visible_2 = False
             mostrar_spellcard =  False
+def fase_inicio():
+    global fase
+    if not fase >= 1:
+        fase += 1
+
+def musica_play():
+    # print (music.is_playing("ronald.wav"), not music.is_playing("ronald.wav"))
+    if not music.is_playing("ronald.wav"):
+        music.play("ronald.wav")
+        music.set_volume(0.2)
+
+def cubo_dialogo_mov(num):
+    if num == 1:
+        if -30 < fase <= -10: #(244, 510) 41
+            cubo_dialogo.y -= 5
+        elif -10 < fase < 0:
+            # print(fase, 10+fase, 1/(10+fase), 33*(1/(10+fase)))
+            cubo_dialogo.y = 510 + 13*(1/(10+fase))
+        elif fase == 0:
+            cubo_dialogo.y = 510
+    else:
+        cubo_dialogo.y += 5
+def dialogo_a_mostrar(texto):
+    global dialogo, dialogo_op, color_dialogo
+    if texto != "end":
+        if dialogo != texto[0]:
+            dialogo = texto[0]
+            dialogo_op = 0
+        if dialogo_op < 1:
+            if keyboard.LCTRL:
+                dialogo_op += 1/5
+            else:
+                dialogo_op += 1/20
+        if texto[1] == 0:
+            color_dialogo = "orange"
+        else:
+            if build == 1:
+                color_dialogo = "red"
+            elif build == 2:
+                color_dialogo = "blue"
+            else:
+                color_dialogo = "green"
+    else:
+        dialogo = None
+        if dialogo_op > 0:
+            dialogo_op = 0
+ 
+def ripples(cadencia, rango, velocidad_personalizada, sprite, posicion, objetivo, objeto, rebotes):
+    global contador_rip_1
+    if not pausa:
+        contador_rip_1 += 1
+        if (contador_rip_1 % cadencia) == 0:
+            contador_rip_1 = 0
+            tele_x = objetivo.x - objeto.x
+            tele_y = objetivo.y - objeto.y
+            numero_3 = math.degrees(math.atan2(tele_y, tele_x))
+            x_pos = posicion[0] + randint(-50, 50)
+            y_pos = posicion[1] + randint(-50, 50)
+            posicion_ran = (x_pos, y_pos)
+            for a in range(rango):
+                numero_3 += 360/rango
+                y = math.sin(math.radians(numero_3)) 
+                x = math.cos(math.radians(numero_3))
+                coord = [x, y]
+                angle = int(math.degrees(math.atan2(y, x)))
+                bala = Actor(sprite + ".png", posicion_ran)
+                bala.angle = -angle -90
+                hitbox_bala = Actor(sprite+"_hitbox.png", posicion_ran)
+                hitbox_bala.angle = -angle -90
+                todo = [bala, coord, hitbox_bala, velocidad_personalizada, rebotes]
+                Ripp.append(todo)
+def ripples_2(cadencia, rango, velocidad_personalizada, sprite, posicion, objetivo, objeto, rebotes):
+    global contador_rip_2
+    if not pausa:
+        contador_rip_2 += 1
+        if (contador_rip_2 % cadencia) == 0:
+            contador_rip_2 = 0
+            tele_x = objetivo.x - objeto.x
+            tele_y = objetivo.y - objeto.y
+            numero_3 = math.degrees(math.atan2(tele_y, tele_x))
+            x_pos = posicion[0] + randint(-50, 50)
+            y_pos = posicion[1] + randint(-50, 50)
+            posicion_ran = (x_pos, y_pos)
+            for a in range(rango):
+                numero_3 += 360/rango
+                y = math.sin(math.radians(numero_3)) 
+                x = math.cos(math.radians(numero_3))
+                coord = [x, y]
+                angle = int(math.degrees(math.atan2(y, x)))
+                bala = Actor(sprite + ".png", posicion_ran)
+                bala.angle = -angle -90
+                hitbox_bala = Actor(sprite+"_hitbox.png", posicion_ran)
+                hitbox_bala.angle = -angle -90
+                todo = [bala, coord, hitbox_bala, velocidad_personalizada, rebotes]
+                Ripp.append(todo)
+
+def ripples_3(cadencia, rango, velocidad_personalizada, sprite, posicion, objetivo, objeto, rebotes):
+    global contador_rip_3
+    if not pausa:
+        contador_rip_3 += 1
+        if (contador_rip_3 % cadencia) == 0:
+            contador_rip_3 = 0
+            tele_x = objetivo.x - objeto.x
+            tele_y = objetivo.y - objeto.y
+            numero_3 = math.degrees(math.atan2(tele_y, tele_x))
+            for a in range(rango):
+                numero_3 += 360/rango
+                y = math.sin(math.radians(numero_3)) 
+                x = math.cos(math.radians(numero_3))
+                coord = [x, y]
+                angle = int(math.degrees(math.atan2(y, x)))
+                bala = Actor(sprite + ".png", posicion)
+                bala.angle = - angle -90
+                hitbox_bala = Actor(sprite+"_hitbox.png", posicion)
+                hitbox_bala.angle = -angle -90
+                todo = [bala, coord, hitbox_bala, velocidad_personalizada, rebotes]
+                Ripp.append(todo)
 
 pgzrun.go()
